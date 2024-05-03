@@ -51,6 +51,16 @@ span {
     color: var(--terminal-primary);
 }
 
+summary {
+    color: var(--terminal-primary);
+}
+
+li {
+    color: var(--terminal-background);
+    display: flex;
+    flex-direction: row;
+}
+
 .apps-item {
     color: var(--terminal-dull);
     font-size: var(--font-size-lesser-header);
