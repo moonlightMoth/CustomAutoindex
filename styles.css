@@ -61,6 +61,11 @@ li {
     flex-direction: row;
 }
 
+ul {
+    border-left: solid 1px;
+    border-color: var(--terminal-dull);
+}
+
 .apps-item {
     color: var(--terminal-dull);
     font-size: var(--font-size-lesser-header);
@@ -95,6 +100,9 @@ li {
         --font-size-lesser-header: 18px;
         --font-size-body: 14px;
     }
+    ul{
+        padding-inline-start: 20px;
+    }
 }
 
 @media (max-width: 512px) {
@@ -110,4 +118,8 @@ li {
         align-items: end;
         gap: 10px;
     }
+    ul{
+        padding-inline-start: 10px;
+    }
+    
 }
