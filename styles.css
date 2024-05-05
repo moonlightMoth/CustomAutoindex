@@ -51,6 +51,7 @@ span {
     color: var(--terminal-primary);
     white-space:nowrap;
     overflow: hidden;
+    text-overflow: ellipsis;
 }
 marquee{
     color: var(--terminal-primary);
@@ -112,7 +113,7 @@ ul {
         --font-size-body: 14px;
     }
     ul{
-        padding-inline-start: 20px;
+        padding-inline-start: 10px;
     }
 
 }
@@ -131,7 +132,7 @@ ul {
         gap: 10px;
     }
     ul{
-        padding-inline-start: 10px;
+        padding-inline-start: 5px;
     }
 
     
