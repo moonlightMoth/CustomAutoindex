@@ -2,13 +2,17 @@
     #include <stdio.h>
 #endif
 
-#include <dirent.h>
+#include <sys/socket.h>
 
-int main(int argc, char *args[])
+int startListening(short int port)
+{
+}
+
+int main(int argc, char **args)
 {
     printf("%d\n", argc);
-    printf("%d\n", args[1]);
+    printf("%s\n", *args);
 
-    
+
 
 }
