@@ -1,0 +1,9 @@
+version: "3"
+services:
+ ftp_autoindex_nginx:
+  image: nginx
+  container_name: ftp_autoindex_nginx
+  volumes:
+    - ./config:/etc/nginx/conf.d
+  ports:
+    - 80:80
