@@ -5,15 +5,9 @@
 #include <sys/socket.h>
 #include "htmlprinter.h"
 
-int startListening(short int port)
-{
-}
 
 int main(int argc, char **args)
 {
-    printf("%d\n", argc);
-    printf("%s\n", *args);
-
-	int b = test(12);
-	printf("%d\n", b);
+    
+    printf("%d\n", test(12));
 }
