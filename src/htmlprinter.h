@@ -6,7 +6,7 @@ int test(int a)
 
 char* get_file_content(FILE* fptr, long* returnSize)
 {
-	int i;
+	int i = 0;
 	char* retPtr;
 
 	if (fptr == NULL || returnSize == NULL)
@@ -22,6 +22,7 @@ char* get_file_content(FILE* fptr, long* returnSize)
 	}
 	
 	*returnSize = ftell(fptr);
+	fseek(fptr, 0, SEEK_SET);
 	retPtr = (char*) calloc(1, (*returnSize + 1) * sizeof(char));
 	if (retPtr == NULL)
 	{
@@ -29,8 +30,10 @@ char* get_file_content(FILE* fptr, long* returnSize)
 		return NULL;
 	}
 	
+	char c;
+	while ((c = getc(fptr))!= EOF)
+		retPtr[i++] = c;
 
-	fgets(retPtr, *returnSize, fptr);
 	fclose(fptr);
 
 	retPtr[*returnSize+1] = 0;

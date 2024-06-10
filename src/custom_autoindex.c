@@ -14,28 +14,40 @@
 int main(int argc, char **args)
 {
     long sz;
-    char* header_buffer;
+    char *header_buffer, *footer_buffer;
 
-    FILE *fptr = fopen(HEDAER_FILE, "r");
+    FILE *header_ptr = fopen(HEDAER_FILE, "r");
+    FILE *footer_ptr = fopen(FOOTER_FILE, "r");
 
-    if (fptr == NULL) {
+    if (header_ptr == NULL) {
         perror("Cannot open html header file");
         return 1;
     }
+    if (footer_ptr == NULL) {
+        perror("Cannot open html footer file");
+        return 1;
+    }
 
-    header_buffer = get_file_content(fptr, &sz);
+    header_buffer = get_file_content(header_ptr, &sz);
+    footer_buffer = get_file_content(footer_ptr, &sz);
 
     if (header_buffer == NULL)
     {
         perror("Cannot read html header file");
         return 1;
     }
-
-    while (!*header_buffer)
+    if (footer_buffer == NULL)
     {
-        printf("%c", *header_buffer++);
+        perror("Cannot read html footer file");
+        return 1;
     }
-    
+
+    while (*header_buffer)
+        printf("%c", *header_buffer++);
+
+    printf("\n");
+    while (*footer_buffer)
+        printf("%c", *footer_buffer++);    
     
     
 }
