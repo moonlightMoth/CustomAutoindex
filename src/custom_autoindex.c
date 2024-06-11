@@ -30,11 +30,6 @@ int __change_path_to_exec_dir(char **args)
 	memcpy(buff, args[0], dir_path-args[0]);
 	buff[dir_path-args[0]] = 0;
 
-	int i= 0;
-
-	while (buff[i])
-		printf("%c", buff[i++]);
-
 	chdir(buff);
 	free(buff);
 
