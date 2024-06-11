@@ -10,10 +10,10 @@ install: target/custom_autoindex.out
 	cp template/footer.html target/footer.html
 
 test: target/custom_autoindex.out
-	./target/custom_autoindex.out test >> target/out.html
+	./target/custom_autoindex.out test
 	cat target/out.html
 
-clean_test:
+full_test:
 	make -s clean
 	make -s compile
 	make -s install
