@@ -1,28 +1,56 @@
-#if 1
-    #include <stdio.h>
-#endif
-
+#include <stdio.h>
 #include <sys/socket.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <unistd.h>
+#include <string.h>
 
 #include "htmlprinter.h"
 
 #define HEDAER_FILE "header.html"
 #define FOOTER_FILE "footer.html"
-#define PRINT_V printf("%d\n", 1);
+#define PRINT_V printf("Current version is: %d\n", 1);
+
+int __change_path_to_exec_dir(char **args)
+{
+	char *dir_path = args[0], *buff;
+
+	while (*dir_path++);
+	while (*dir_path-- != '/');
+	dir_path++;
+
+	buff = (char*) malloc(dir_path-args[0]+1);
+
+	if (buff == NULL)
+	{
+		perror("Got NULL in malloc __change_path_to_exec_dir");
+		return 1;
+	}
+
+	memcpy(buff, args[0], dir_path-args[0]);
+	buff[dir_path-args[0]] = 0;
+
+	int i= 0;
+
+	while (buff[i])
+		printf("%c", buff[i++]);
+
+	chdir(buff);
+	free(buff);
+
+	return 0;
+}
 
 int main(int argc, char **args)
 {
     int i = 0;
     long szh, szf;
-    char *header_buffer, *footer_buffer;
-    
-    PRINT_V
+    char *header_buffer, *footer_buffer, *dir_ptr = args[0];
+
+	__change_path_to_exec_dir(args);
 
     FILE *header_ptr = fopen(HEDAER_FILE, "r");
     FILE *footer_ptr = fopen(FOOTER_FILE, "r");
-
     if (header_ptr == NULL) {
         perror("Cannot open html header file");
         return 1;
@@ -31,6 +59,7 @@ int main(int argc, char **args)
         perror("Cannot open html footer file");
         return 1;
     }
+
 
     szh = get_file_length(header_ptr);
     szf = get_file_length(footer_ptr);
