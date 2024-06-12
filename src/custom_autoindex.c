@@ -9,25 +9,18 @@
 
 int __change_path_to_exec_dir(char **args)
 {
-	char *dir_path = args[0], *buff;
+	char *dir_path = args[0];
 
 	while (*dir_path++);
 	while (*dir_path-- != '/');
 	dir_path++;
 
-	buff = (char*) malloc(dir_path-args[0]+1);
-
-	if (buff == NULL)
-	{
-		perror("Got NULL in malloc __change_path_to_exec_dir");
-		return 1;
-	}
+	char buff[dir_path-args[0]+1];
 
 	memcpy(buff, args[0], dir_path-args[0]);
 	buff[dir_path-args[0]] = 0;
 
 	chdir(buff);
-	free(buff);
 
 	return 0;
 }

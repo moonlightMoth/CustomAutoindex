@@ -1,3 +1,11 @@
+#include <stdio.h>
+#include <sys/socket.h>
+#include <stdlib.h>
+#include <errno.h>
+#include <unistd.h>
+#include <string.h>
+
+
 #define HEDAER_FILE "header.html"
 #define FOOTER_FILE "footer.html"
 
