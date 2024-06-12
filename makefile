@@ -11,7 +11,7 @@ install: target/custom_autoindex.out
 
 test: target/custom_autoindex.out
 	./target/custom_autoindex.out test
-	cat target/out.html
+	cat target/tree.html
 
 full_test:
 	make -s clean

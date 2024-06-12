@@ -8,7 +8,7 @@
 
 #define HEDAER_FILE "header.html"
 #define FOOTER_FILE "footer.html"
-
+#define OUT_FILE "tree.html"
 
 long __get_file_length(FILE *fptr)
 {
@@ -55,16 +55,34 @@ int __get_file_content(FILE* fptr, char* buffer)
 	return 0;
 }
 
-int __write_html()
+int __write_to_file(char **buff, int buff_size)
 {
-	return 1;
+	int i;
+	FILE * optr = fopen(OUT_FILE, "w");
+
+	if (!optr)
+	{
+		perror("Got NULL in __write_to_file");
+		return 1;
+	}
+
+	for (i = 0; i < buff_size; i++)
+	{
+		while (*buff[i])
+		{
+			putc(*buff[i]++, optr);
+		}
+		putc('\n', optr);
+	}
+
+	return 0;
 }
 
 int print_html()
 {
 	int i = 0;
     long szh, szf;
-    char *header_buffer, *footer_buffer;
+    char *header_buffer, *footer_buffer, **merged;
 
     FILE *header_ptr = fopen(HEDAER_FILE, "r");
     FILE *footer_ptr = fopen(FOOTER_FILE, "r");
@@ -83,6 +101,9 @@ int print_html()
 
     header_buffer = (char*) calloc(1, (szh) * sizeof(char));
     footer_buffer = (char*) calloc(1, (szf) * sizeof(char));
+	merged = (char**) calloc (2, sizeof(void*));
+	merged[0] = header_buffer;
+	merged[1] = footer_buffer;
 
     __get_file_content(header_ptr, header_buffer);
     __get_file_content(footer_ptr, footer_buffer);
@@ -101,13 +122,14 @@ int print_html()
         return 1;
     }
 
-    while (header_buffer[i])
-        printf("%c", header_buffer[i++]);
+//    while (header_buffer[i])
+//        printf("%c", header_buffer[i++]);
 
-    i = 0;
-    printf("\n");
-    while (footer_buffer[i])
-        printf("%c", footer_buffer[i++]);
+//    i = 0;
+//    printf("\n");
+//    while (footer_buffer[i])
+//        printf("%c", footer_buffer[i++]);
+	__write_to_file(merged, 2);
 
     free(header_buffer);
     free(footer_buffer);
