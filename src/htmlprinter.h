@@ -135,3 +135,50 @@ int print_html()
     free(footer_buffer);
 
 }
+
+
+int load_wds(char* dwd, char* ewd, char** args)
+{
+	char *tmp, *args_ptr;
+	int sz;
+    if (*args[1] == '/')
+    {
+        tmp = args[1];
+        while (*tmp++);
+        sz = tmp - args[1];
+        memcpy(dwd, args[1], sz);
+        dwd[sz] = 0;
+    }
+    else
+    {
+        getcwd(dwd, PATH_MAX);
+        tmp = dwd;
+        while (*tmp++);
+        sz = tmp - dwd;
+        args_ptr = args[1];
+        dwd[sz-1] = '/';
+        while (*args_ptr) dwd[sz++] = *args_ptr++;
+        dwd[sz] = 0;
+    }
+
+    if (*args[0] == '/')
+    {
+        tmp = args[0];
+        while (*tmp++);
+        sz = tmp - args[0];
+        memcpy(ewd, args[0], sz);
+        ewd[sz] = 0;
+    }
+    else
+    {
+        getcwd(ewd, PATH_MAX);
+        tmp = ewd;
+        while (*tmp++);
+        sz = tmp - ewd;
+        args_ptr = args[0];
+        ewd[sz-1] = '/';
+        while (*args_ptr) ewd[sz++] = *args_ptr++;
+        while (ewd[sz--] != '/');
+        ewd[sz+1] = 0;
+    }
+}

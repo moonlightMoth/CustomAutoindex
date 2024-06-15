@@ -4,31 +4,40 @@
 #include <errno.h>
 #include <unistd.h>
 #include <string.h>
+#include <limits.h>
 
 #include "htmlprinter.h"
 
-int __change_path_to_exec_dir(char **args)
+int __check_argc(int argc)
 {
-	char *dir_path = args[0];
+	if (argc == 2)
+	{
+		return 0;
+	}
 
-	while (*dir_path++);
-	while (*dir_path-- != '/');
-	dir_path++;
+	perror("Args count should be 1: relative or absolute construct html of\n");
 
-	char buff[dir_path-args[0]+1];
-
-	memcpy(buff, args[0], dir_path-args[0]);
-	buff[dir_path-args[0]] = 0;
-
-	chdir(buff);
-
-	return 0;
+	return 1;
 }
 
 int main(int argc, char **args)
 {
+	char* dwd = malloc(PATH_MAX+1);
+	char* ewd = malloc(PATH_MAX+1);
 
-	__change_path_to_exec_dir(args);
+	if (__check_argc(argc) == 1)
+		return 1;
+
+	if (load_wds(dwd, ewd, args) == 1)
+		return 1;
+
+	chdir(ewd);
+	chdir(dwd);
+	chdir(ewd);
+
 	print_html();
+
+	free(dwd);
+	free(ewd);
 
 }
