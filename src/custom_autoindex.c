@@ -31,10 +31,6 @@ int main(int argc, char **args)
 	if (load_wds(dwd, ewd, args) == 1)
 		return 1;
 
-	chdir(ewd);
-	chdir(dwd);
-	chdir(ewd);
-
 	print_html();
 
 	free(dwd);

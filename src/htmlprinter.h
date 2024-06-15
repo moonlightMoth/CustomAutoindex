@@ -10,6 +10,8 @@
 #define FOOTER_FILE "footer.html"
 #define OUT_FILE "tree.html"
 
+char *dest_wd, *exec_wd;
+
 long __get_file_length(FILE *fptr)
 {
 	long size;
@@ -84,8 +86,11 @@ int print_html()
     long szh, szf;
     char *header_buffer, *footer_buffer, **merged;
 
+	chdir(exec_wd);
+
     FILE *header_ptr = fopen(HEDAER_FILE, "r");
     FILE *footer_ptr = fopen(FOOTER_FILE, "r");
+
     if (header_ptr == NULL) {
         perror("Cannot open html header file");
         return 1;
@@ -148,6 +153,7 @@ int load_wds(char* dwd, char* ewd, char** args)
         sz = tmp - args[1];
         memcpy(dwd, args[1], sz);
         dwd[sz] = 0;
+		dest_wd = dwd;
     }
     else
     {
@@ -159,6 +165,7 @@ int load_wds(char* dwd, char* ewd, char** args)
         dwd[sz-1] = '/';
         while (*args_ptr) dwd[sz++] = *args_ptr++;
         dwd[sz] = 0;
+		dest_wd = dwd;
     }
 
     if (*args[0] == '/')
@@ -168,6 +175,7 @@ int load_wds(char* dwd, char* ewd, char** args)
         sz = tmp - args[0];
         memcpy(ewd, args[0], sz);
         ewd[sz] = 0;
+		exec_wd = ewd;
     }
     else
     {
@@ -180,5 +188,8 @@ int load_wds(char* dwd, char* ewd, char** args)
         while (*args_ptr) ewd[sz++] = *args_ptr++;
         while (ewd[sz--] != '/');
         ewd[sz+1] = 0;
+		exec_wd = ewd;
     }
+
+	return 0;
 }
