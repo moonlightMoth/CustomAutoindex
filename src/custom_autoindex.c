@@ -6,8 +6,10 @@
 #include <string.h>
 #include <limits.h>
 
-#include "htmlprinter.h"
+#include "html_printer.h"
 
+//args must be path to dir to make dir list from
+//
 int __check_argc(int argc)
 {
 	if (argc == 2)
