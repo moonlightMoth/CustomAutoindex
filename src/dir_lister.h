@@ -12,13 +12,13 @@ typedef struct dt
 	struct dt** children;
 } dir_tree;
 
-int __get_dir_len(char* root_name)
+int __get_dir_len(char* path)
 {
 	int num = 0;
 	DIR *dp;
 	struct dirent *ep;
 
-	dp = opendir(root_name);
+	dp = opendir(path);
 	if (dp == NULL)
 	{
 		return -1;
@@ -53,10 +53,10 @@ int __fill_dummy(dir_tree* node, char* name)
 	return 0;
 }
 
-char* __get_short_name (char* full_name)
+char* __get_entry_name (char* full_name)
 {
-	int root_len = strlen(full_name);
-	char* ret = full_name + root_len - 1;
+	int path_len = strlen(full_name);
+	char* ret = full_name + path_len - 1;
 
 	while (ret >= full_name && *ret != '/') ret--;
 
@@ -65,40 +65,41 @@ char* __get_short_name (char* full_name)
 	return ret;
 }
 
-dir_tree* list_dirs(char* root_name)
+dir_tree* __list_dirs(char* path)
 {
-	dir_tree *root = (dir_tree*) malloc(sizeof(dir_tree));
+	dir_tree *node = (dir_tree*) malloc(sizeof(dir_tree));
 
-	int num, i, j, root_len;
+	int num, i, j, path_len;
 	DIR *dp;
 	struct dirent *ep;
-	char* short_name = __get_short_name(root_name);
+	char* entry_name = __get_entry_name(path);
+	char* end_of_path = path + strlen(path);
 
-	root_len = strlen(short_name);
-	root->name = malloc(root_len);
+	path_len = strlen(entry_name);
+	node->name = malloc(path_len);
 
 
-	num = __get_dir_len(root_name);
+	num = __get_dir_len(path);
 
 	if (num == -1)
 	{
-		__fill_dummy(root, short_name);
-		return root;
+		__fill_dummy(node, entry_name);
+		return node;
 	}
 
-	root->children = malloc(num*sizeof(char*));
+	node->children = malloc(num*sizeof(char*));
 
-	root->num_of_children = num;
-	memcpy(root->name, short_name, root_len);
+	node->num_of_children = num;
+	memcpy(node->name, entry_name, strlen(entry_name));
 
 	for (i = 0; i < num; i++)
 	{
-		root->children[i] = (dir_tree*) malloc(sizeof(dir_tree));
+		node->children[i] = (dir_tree*) malloc(sizeof(dir_tree));
 	}
 
 	i = 0; j = 0;
 
-	dp = opendir(root_name);
+	dp = opendir(path);
 
 	if (dp == NULL)
 	{
@@ -113,12 +114,32 @@ dir_tree* list_dirs(char* root_name)
 				ep->d_name[0] == '.' && ep->d_name[1] == '\0'
 			))
 		{
-			root->children[i++] = list_dirs(ep->d_name);
+			*end_of_path = '/';
+			while (ep->d_name[j])
+			{
+				end_of_path[1 + j] = ep->d_name[j];
+				j++;
+			}
+			end_of_path[j + 1] = '\0';
+
+			node->children[i++] = __list_dirs(path);
+
+			*end_of_path = '\0';
+			j = 0;
 		}
 	}
 
 	closedir(dp);
 
-	return root;
+	return node;
 }
 
+
+dir_tree* get_tree(char* path)
+{
+	char* buff = (char*) malloc(PATH_MAX + 1);
+	memcpy(buff, path, strlen(path));
+	dir_tree *dt = __list_dirs(buff);
+	free(buff);
+	return dt;
+}
