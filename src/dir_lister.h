@@ -6,6 +6,7 @@
 #include <sys/stat.h>
 
 #define MAX_NAME_LEN 51
+#define MAX_OFFSET 120
 
 typedef struct dt
 {
@@ -137,6 +138,7 @@ dir_tree* __list_dirs(char* path)
 	}
 
 	closedir(dp);
+	free(stat_buff);
 
 	return node;
 }
@@ -149,4 +151,41 @@ dir_tree* get_tree(char* path)
 	dir_tree *dt = __list_dirs(buff);
 	free(buff);
 	return dt;
+}
+
+int print_tree(dir_tree *dt, int offset)
+{
+        int off = 0;
+        for (int i = 0; i < offset; i++)
+        {
+                printf("|  ");
+                off += 3;
+        }
+
+        if (offset != -1)
+        {
+                printf("|  ");
+                off += 3;
+        }
+
+        if (dt->children)
+                printf("%s\n", dt->name);
+        else
+        {
+                printf("%s", dt->name);
+                off += strlen(dt->name);
+
+                while (off < MAX_OFFSET)
+                {
+                        printf(".");
+                        off++;
+                }
+
+                printf("%ld\n", dt->size);
+        }
+
+        for (int i = 0; i < dt->num_of_children; i++)
+        {
+                print_tree(dt->children[i], offset+1);
+        }
 }
