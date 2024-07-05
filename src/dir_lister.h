@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <dirent.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #define MAX_NAME_LEN 51
 
@@ -9,6 +11,7 @@ typedef struct dt
 {
 	char* name;
 	int num_of_children;
+	off_t size;
 	struct dt** children;
 } dir_tree;
 
@@ -32,7 +35,7 @@ int __get_dir_len(char* path)
 	return num - 2;
 }
 
-int __fill_dummy(dir_tree* node, char* name)
+int __fill_dummy(dir_tree* node, char* path, char* name, struct stat *stat_buff)
 {
 	int i = 0;
 
@@ -49,6 +52,9 @@ int __fill_dummy(dir_tree* node, char* name)
 
 	node->num_of_children = 0;
 	node->children = NULL;
+
+	stat(path, stat_buff);
+	node->size = stat_buff->st_size;
 
 	return 0;
 }
@@ -74,6 +80,7 @@ dir_tree* __list_dirs(char* path)
 	struct dirent *ep;
 	char* entry_name = __get_entry_name(path);
 	char* end_of_path = path + strlen(path);
+	struct stat *stat_buff = (struct stat*) malloc(sizeof(struct stat));
 
 	path_len = strlen(entry_name);
 	node->name = malloc(path_len);
@@ -83,7 +90,7 @@ dir_tree* __list_dirs(char* path)
 
 	if (num == -1)
 	{
-		__fill_dummy(node, entry_name);
+		__fill_dummy(node, path, entry_name, stat_buff);
 		return node;
 	}
 
