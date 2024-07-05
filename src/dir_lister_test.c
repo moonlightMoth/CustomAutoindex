@@ -10,7 +10,7 @@ int print_tree(dir_tree *dt, int offset)
 {
 	for (int i = 0; i < offset; i++)
 	{
-		printf("  ");
+		printf("|  ");
 	}
 
 	if (offset != -1)

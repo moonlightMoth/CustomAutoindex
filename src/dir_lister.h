@@ -90,7 +90,7 @@ dir_tree* __list_dirs(char* path)
 	node->children = malloc(num*sizeof(char*));
 
 	node->num_of_children = num;
-	memcpy(node->name, entry_name, strlen(entry_name));
+	memcpy(node->name, entry_name, strlen(entry_name)+1);
 
 	for (i = 0; i < num; i++)
 	{
@@ -120,7 +120,7 @@ dir_tree* __list_dirs(char* path)
 				end_of_path[1 + j] = ep->d_name[j];
 				j++;
 			}
-			end_of_path[j + 1] = '\0';
+			end_of_path[j+1] = '\0';
 
 			node->children[i++] = __list_dirs(path);
 
