@@ -13,6 +13,7 @@ typedef struct dt
 	char* name;
 	int num_of_children;
 	off_t size;
+	time_t mtime;
 	struct dt** children;
 } dir_tree;
 
@@ -56,6 +57,7 @@ int __fill_dummy(dir_tree* node, char* path, char* name, struct stat *stat_buff)
 
 	stat(path, stat_buff);
 	node->size = stat_buff->st_size;
+	node->mtime = stat_buff->st_mtime;
 
 	return 0;
 }
@@ -173,13 +175,26 @@ int print_tree(dir_tree *dt, int offset)
                 printf("%s", dt->name);
                 off += strlen(dt->name);
 
-                while (off < MAX_OFFSET)
+                while (off < MAX_OFFSET-25)
                 {
                         printf(".");
                         off++;
                 }
 
-                printf("%ld\n", dt->size);
+                printf("%ld", dt->size);
+
+				int dig = 0;
+				long num = dt->size;
+				while (num > 0){ dig++; num = num / 10; }
+				off += dig;
+
+				while (off < MAX_OFFSET)
+				{
+					printf(".");
+					off++;
+				}
+
+				printf("%ld\n", dt->mtime);
         }
 
         for (int i = 0; i < dt->num_of_children; i++)
