@@ -11,5 +11,5 @@ int main()
 
 	print_tree(root, -1);
 
-	free(root);
+	destruct_dir_tree(root);
 }

@@ -202,3 +202,26 @@ int print_tree(dir_tree *dt, int offset)
                 print_tree(dt->children[i], offset+1);
         }
 }
+
+
+int destruct_dir_tree(dir_tree *node)
+{
+	free(node->name);
+
+	if (node->children)
+	{
+		for (int i = 0; i < node->num_of_children; i++)
+		{
+			destruct_dir_tree(node->children[i]);
+		}
+		free(node->children);
+	}
+
+	free(node);
+
+	return 0;
+}
+
+
+
+
