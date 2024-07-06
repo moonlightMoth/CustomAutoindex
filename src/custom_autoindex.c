@@ -17,12 +17,12 @@ int __check_argc(int argc)
 		return 0;
 	}
 
-	perror("Args count should be 1: relative or absolute construct html of\n");
+	perror("Args count should be 1: relative or absolute path to dir to construct html of\n");
 
 	return 1;
 }
 
-int main(int argc, char **args)
+int main(int argc, char **argv)
 {
 	char* dwd = malloc(PATH_MAX+1);
 	char* ewd = malloc(PATH_MAX+1);
@@ -30,10 +30,10 @@ int main(int argc, char **args)
 	if (__check_argc(argc) == 1)
 		return 1;
 
-	if (load_wds(dwd, ewd, args) == 1)
+	if (load_wds(dwd, ewd, argv) == 1)
 		return 1;
 
-	print_html();
+	print_html(argv[1]);
 
 	free(dwd);
 	free(ewd);

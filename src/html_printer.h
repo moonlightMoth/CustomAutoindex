@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <string.h>
 
+#include "dir_lister.h"
 
 #define HEDAER_FILE "header.html"
 #define FOOTER_FILE "footer.html"
@@ -82,11 +83,20 @@ int __write_to_file(char **buff, int buff_size)
 	return 0;
 }
 
-int print_html()
+char* __get_body(char* dir) //TODO UNWRAP dir_tree TO HTML BODY
+{
+	dir_tree *root = get_tree(dir);
+	char* ret = malloc(strlen(root->name)+1);
+	memcpy(ret, root->name, strlen(root->name)+1);
+	destruct_dir_tree(root);
+	return ret;
+}
+
+int print_html(char* dir)
 {
 	int i = 0;
     long szh, szf;
-    char *header_buffer, *footer_buffer, **merged;
+    char *header_buffer, *body_buffer, *footer_buffer, **merged;
 
 	chdir(exec_wd);
 
@@ -107,10 +117,13 @@ int print_html()
     szf = __get_file_length(footer_ptr);
 
     header_buffer = (char*) calloc(1, (szh) * sizeof(char));
+	body_buffer = __get_body(dir);
     footer_buffer = (char*) calloc(1, (szf) * sizeof(char));
+
 	merged = (char**) calloc (2, sizeof(void*));
 	merged[0] = header_buffer;
-	merged[1] = footer_buffer;
+	merged[1] = body_buffer;
+	merged[2] = footer_buffer;
 
     __get_file_content(header_ptr, header_buffer);
     __get_file_content(footer_ptr, footer_buffer);
@@ -129,16 +142,10 @@ int print_html()
         return 1;
     }
 
-//    while (header_buffer[i])
-//        printf("%c", header_buffer[i++]);
-
-//    i = 0;
-//    printf("\n");
-//    while (footer_buffer[i])
-//        printf("%c", footer_buffer[i++]);
-	__write_to_file(merged, 2);
+	__write_to_file(merged, 3);
 
     free(header_buffer);
+	free(body_buffer);
     free(footer_buffer);
 
 }

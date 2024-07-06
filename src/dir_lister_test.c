@@ -5,9 +5,12 @@
 
 #include "dir_lister.h"
 
-int main()
+int main(int argc, char** argv)
 {
-	dir_tree *root = get_tree("test");
+	if (argc != 2)
+		return 1;
+
+	dir_tree *root = get_tree(argv[1]);
 
 	print_tree(root, -1);
 
