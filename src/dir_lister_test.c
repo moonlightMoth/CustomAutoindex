@@ -7,7 +7,7 @@
 
 int main()
 {
-	dir_tree *root = get_tree("test");
+	dir_tree *root = get_tree(".test");
 
 	print_tree(root, -1);
 }
