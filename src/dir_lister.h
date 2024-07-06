@@ -62,8 +62,8 @@ int __fill_dummy(dir_tree* node, char* path, char* name, struct stat *stat_buff)
 
 char* __get_entry_name (char* full_name)
 {
-	int path_len = strlen(full_name);
-	char* ret = full_name + path_len - 1;
+	int entry_name_len = strlen(full_name);
+	char* ret = full_name + entry_name_len - 1;
 
 	while (ret >= full_name && *ret != '/') ret--;
 
@@ -72,19 +72,18 @@ char* __get_entry_name (char* full_name)
 	return ret;
 }
 
-dir_tree* __list_dirs(char* path)
+dir_tree* __list_dirs(char* path, struct stat *stat_buff)
 {
 	dir_tree *node = (dir_tree*) malloc(sizeof(dir_tree));
 
-	int num, i, j, path_len;
+	int num, i = 0, j = 0, entry_name_len;
 	DIR *dp;
 	struct dirent *ep;
 	char* entry_name = __get_entry_name(path);
 	char* end_of_path = path + strlen(path);
-	struct stat *stat_buff = (struct stat*) malloc(sizeof(struct stat));
 
-	path_len = strlen(entry_name);
-	node->name = malloc(path_len);
+	entry_name_len = strlen(entry_name);
+	node->name = malloc(entry_name_len+1);
 
 
 	num = __get_dir_len(path);
@@ -100,12 +99,6 @@ dir_tree* __list_dirs(char* path)
 	node->num_of_children = num;
 	memcpy(node->name, entry_name, strlen(entry_name)+1);
 
-	for (i = 0; i < num; i++)
-	{
-		node->children[i] = (dir_tree*) malloc(sizeof(dir_tree));
-	}
-
-	i = 0; j = 0;
 
 	dp = opendir(path);
 
@@ -130,7 +123,7 @@ dir_tree* __list_dirs(char* path)
 			}
 			end_of_path[j+1] = '\0';
 
-			node->children[i++] = __list_dirs(path);
+			node->children[i++] = __list_dirs(path, stat_buff);
 
 			*end_of_path = '\0';
 			j = 0;
@@ -138,7 +131,6 @@ dir_tree* __list_dirs(char* path)
 	}
 
 	closedir(dp);
-	free(stat_buff);
 
 	return node;
 }
@@ -147,9 +139,15 @@ dir_tree* __list_dirs(char* path)
 dir_tree* get_tree(char* path)
 {
 	char* buff = (char*) malloc(PATH_MAX + 1);
+	buff[PATH_MAX] = '\0';
 	memcpy(buff, path, strlen(path));
-	dir_tree *dt = __list_dirs(buff);
+
+	struct stat *stat_buff = (struct stat*) malloc(sizeof(struct stat));
+
+	dir_tree *dt = __list_dirs(buff, stat_buff);
+
 	free(buff);
+	free(stat_buff);
 	return dt;
 }
 
