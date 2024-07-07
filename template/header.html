@@ -57,12 +57,20 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
-        marquee{
+
+        a {
             color: var(--terminal-primary);
+            white-space:nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         summary {
             color: var(--terminal-primary);
+        }
+
+        summary:hover {
+            color: var(--terminal-accent);
         }
 
         details{
@@ -73,34 +81,29 @@
 
         li {
             color: var(--terminal-background);
-            display: flex;
-            min-width: 100%;
         }
-
+        
         ul {
             border-left: solid 1px;
             border-color: var(--terminal-dull);
             padding-inline-start: 10px;
         }
 
-        .apps-item {
-            color: var(--terminal-dull);
-            font-size: var(--font-size-lesser-header);
-        }
-
-        .apps-item:hover {
-            color: var(--terminal-accent);
-            font-size: var(--font-size-lesser-header);
-        }
-
-        .apps-description {
-            color: var(--terminal-primary);
-            font-size: var(--font-size-body);
-        }
-
         .size-date{
             margin-left: auto;
             padding-left: 10px;
+        }
+
+        .hover-item{
+            display: flex;
+            min-width: 100%;
+        }
+
+        .hover-item:hover span {
+            color: var(--terminal-accent);
+        }
+        .hover-item:hover a {
+            color: var(--terminal-accent);
         }
 
         @media (max-width: 1024px) {
@@ -148,7 +151,6 @@
     </style>
 
 </head>
-
 
 <body>
     <div class="header">

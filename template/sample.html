@@ -57,12 +57,20 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
-        marquee{
+
+        a {
             color: var(--terminal-primary);
+            white-space:nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         summary {
             color: var(--terminal-primary);
+        }
+
+        summary:hover {
+            color: var(--terminal-accent);
         }
 
         details{
@@ -73,34 +81,29 @@
 
         li {
             color: var(--terminal-background);
-            display: flex;
-            min-width: 100%;
         }
-
+        
         ul {
             border-left: solid 1px;
             border-color: var(--terminal-dull);
             padding-inline-start: 10px;
         }
 
-        .apps-item {
-            color: var(--terminal-dull);
-            font-size: var(--font-size-lesser-header);
-        }
-
-        .apps-item:hover {
-            color: var(--terminal-accent);
-            font-size: var(--font-size-lesser-header);
-        }
-
-        .apps-description {
-            color: var(--terminal-primary);
-            font-size: var(--font-size-body);
-        }
-
         .size-date{
             margin-left: auto;
             padding-left: 10px;
+        }
+
+        .hover-item{
+            display: flex;
+            min-width: 100%;
+        }
+
+        .hover-item:hover span {
+            color: var(--terminal-accent);
+        }
+        .hover-item:hover a {
+            color: var(--terminal-accent);
         }
 
         @media (max-width: 1024px) {
@@ -173,9 +176,9 @@
                     <summary>Directory 0.1</summary>
         
                     <ul>
-                        <li><span>file 0.1.0</span><><div class="size-date"><span>   4.4MB 23.02.12</span></div></li>
-                        <li><span>file 0.1.0</span><><div class="size-date"><span>   4.4MB 23.02.12</span></div></li>
-                        <li><span>file 0.1.0</span><><div class="size-date"><span>   4.4MB 23.02.12</span></div></li>
+                        <li><div class="hover-item"><a href="https://ftp.moonlightmoth.ru/Directory 0/Directory 0.1/file 0.1.0">file 0.1.0</a><div class="size-date"><span>   4.4MB 23.02.12</span></div></div></li>
+                        <li><div class="hover-item"><a href="https://ftp.moonlightmoth.ru/Directory 0/Directory 0.1/file 0.1.0">file 0.1.0</a><div class="size-date"><span>   4.4MB 23.02.12</span></div></li>
+                        <li><div class="hover-item"><a href="https://ftp.moonlightmoth.ru/Directory 0/Directory 0.1/file 0.1.0">file 0.1.0</a><div class="size-date"><span>   4.4MB 23.02.12</span></div></li>
 
                         <details>
                             <summary>Directory 0</summary>
@@ -186,15 +189,15 @@
                                         <summary>Directory 0.1</summary>
                             
                                         <ul>
-                                            <li><span>file 0.1.0</span><><div class="size-date"><span>1023MB 23.02.12</span></div></li>
-                                            <li><span>file 0.1.0</span><><div class="size-date"><span>4.4MB 23.02.12</span></div></li>
-                                            <li><span>file 0.1.0</span><><div class="size-date"><span>4.4MB 23.02.12</span></div></li>
+                                            <li><div class="hover-item"><a href="https://ftp.moonlightmoth.ru/Directory 0/Directory 0.1/file 0.1.0">file 0.1.0</a><div class="size-date"><span>1023MB 23.02.12</span></div></div></li>
+                                            <li><div class="hover-item"><a href="https://ftp.moonlightmoth.ru/Directory 0/Directory 0.1/file 0.1.0">file 0.1.0</a><div class="size-date"><span>4.4MB 23.02.12</span></div></div></li>
+                                            <li><div class="hover-item"><a href="https://ftp.moonlightmoth.ru/Directory 0/Directory 0.1/file 0.1.0">file 0.1.0</a><div class="size-date"><span>4.4MB 23.02.12</span></div></div></li>
                                         </ul>
                             
                                     </details>
                                 </li>
-                                <li><span>file 0.1.0</span><><div class="size-date"><span>4.4MB 23.02.12</span></div></li>
-                                <li><span>Friends Season 2 COMPLETE.720p.BRrip.sujaidr (p..></span><div class="size-date"><span>1023MB 23.02.12</span></div></li>
+                                <li><div class="hover-item"><a href="https://ftp.moonlightmoth.ru/Directory 0/Directory 0.1/file 0.1.0">file 0.1.0</a><div class="size-date"><span>4.4MB 23.02.12</span></div></div></li>
+                                <li><div class="hover-item"><a href="https://ftp.moonlightmoth.ru/Directory 0/Directory 0.1/file 0.1.0">Friends Season 2 COMPLETE.720p.BRrip.sujaidr (p..></a><div class="size-date"><span>1023MB 23.02.12</span></div></div></li>
                     
                             </ul>
                         </details>
@@ -203,8 +206,8 @@
         
                 </details>
             </li>
-            <li><span>file 0.1.0</span><><div class="size-date"><span>4.4MB 23.02.12</span></div></li>
-            <li><span>Friends Season 2 COMPLETE.720p.BRrip.sujaidr (p..></span><div class="size-date"><span>4.4MB 23.02.12</span></div></li>
+            <li><div class="hover-item"><a href="https://ftp.moonlightmoth.ru/Directory 0/Directory 0.1/file 0.1.0">file 0.1.0</a><div class="size-date"><span>4.4MB 23.02.12</span></div></div></li>
+            <li><div class="hover-item"><a href="https://ftp.moonlightmoth.ru/Directory 0/Directory 0.1/file 0.1.0">Friends Season 2 COMPLETE.720p.BRrip.sujaidr (p..></a><div class="size-date"><span>4.4MB 23.02.12</span></div></div></li>
 
         </ul>
     </details>
