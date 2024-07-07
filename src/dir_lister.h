@@ -7,6 +7,8 @@
 
 #define MAX_NAME_LEN 51
 #define MAX_OFFSET 120
+#define DIR_IDENTITY 0
+#define FILE_IDENTITY 1
 
 typedef struct dt
 {
@@ -14,6 +16,7 @@ typedef struct dt
 	int num_of_children;
 	off_t size;
 	time_t mtime;
+	char type;
 	struct dt** children;
 } dir_tree;
 
@@ -58,6 +61,7 @@ int __fill_dummy(dir_tree* node, char* path, char* name, struct stat *stat_buff)
 	stat(path, stat_buff);
 	node->size = stat_buff->st_size;
 	node->mtime = stat_buff->st_mtime;
+	node->type = S_ISREG(stat_buff->st_mode) ? FILE_IDENTITY : DIR_IDENTITY;
 
 	return 0;
 }
@@ -67,11 +71,38 @@ char* __get_entry_name (char* full_name)
 	int entry_name_len = strlen(full_name);
 	char* ret = full_name + entry_name_len - 1;
 
+	if (entry_name_len != 1 && *ret == '/')
+		*ret = '\0';
+
 	while (ret >= full_name && *ret != '/') ret--;
 
 	ret++;
 
 	return ret;
+}
+
+int __get_dir_tree_stat(int *dirs, int *files, dir_tree *node)
+{
+	if (node->type == FILE_IDENTITY)
+		(*files)++;
+	else
+		(*dirs)++;
+
+	for (int i = 0; i < node->num_of_children; i++)
+	{
+		__get_dir_tree_stat(dirs, files, node->children[i]);
+	}
+}
+
+
+// takes int pointers to put stat to
+
+int get_dir_tree_stat(int *dirs, int *files, dir_tree *root)
+{
+	*dirs = 0;
+	*files = 0;
+
+	__get_dir_tree_stat(dirs, files, root);
 }
 
 dir_tree* __list_dirs(char* path, struct stat *stat_buff)
@@ -153,7 +184,9 @@ dir_tree* get_tree(char* path)
 	return dt;
 }
 
-int print_tree(dir_tree *dt, int offset)
+
+// private recursive fun to print dir_tree to console
+int __print_tree(dir_tree *dt, int offset)
 {
         int off = 0;
         for (int i = 0; i < offset; i++)
@@ -194,13 +227,27 @@ int print_tree(dir_tree *dt, int offset)
 					off++;
 				}
 
-				printf("%ld\n", dt->mtime);
+				if (dt->type == DIR_IDENTITY) printf("D"); else printf("F");
+
+				printf("    %ld\n", dt->mtime);
         }
 
         for (int i = 0; i < dt->num_of_children; i++)
         {
-                print_tree(dt->children[i], offset+1);
+                __print_tree(dt->children[i], offset+1);
         }
+}
+
+// public fun that runs recursion and prints num of dirs and files
+int print_tree(dir_tree *dt, int offset)
+{
+	__print_tree(dt, offset);
+
+	int dirs, files;
+
+	get_dir_tree_stat(&dirs, &files, dt);
+
+	printf("\n\nDirectories num: %d\nFiles num: %d\n", dirs, files);
 }
 
 
