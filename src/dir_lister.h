@@ -61,7 +61,7 @@ int __fill_dummy(dir_tree* node, char* path, char* name, struct stat *stat_buff)
 	stat(path, stat_buff);
 	node->size = stat_buff->st_size;
 	node->mtime = stat_buff->st_mtime;
-	node->type = S_ISREG(stat_buff->st_mode) ? FILE_IDENTITY : DIR_IDENTITY;
+	node->type = S_ISDIR(stat_buff->st_mode) ? DIR_IDENTITY : FILE_IDENTITY;
 
 	return 0;
 }
