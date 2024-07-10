@@ -9,6 +9,7 @@
 #define MAX_OFFSET 120
 #define DIR_IDENTITY 0
 #define FILE_IDENTITY 1
+#define LINK_IDENTITY 2
 
 typedef struct dt
 {
@@ -20,11 +21,17 @@ typedef struct dt
 	struct dt** children;
 } dir_tree;
 
-int __get_dir_len(char* path)
+int __get_dir_num_of_children(char* path, struct stat *stat_buff)
 {
 	int num = 0;
 	DIR *dp;
 	struct dirent *ep;
+
+	int err = lstat(path, stat_buff);
+	if (err || S_ISLNK(stat_buff->st_mode))
+	{
+		return -1;
+	}
 
 	dp = opendir(path);
 	if (dp == NULL)
@@ -58,10 +65,10 @@ int __fill_dummy(dir_tree* node, char* path, char* name, struct stat *stat_buff)
 	node->num_of_children = 0;
 	node->children = NULL;
 
-	stat(path, stat_buff);
+	lstat(path, stat_buff);
 	node->size = stat_buff->st_size;
 	node->mtime = stat_buff->st_mtime;
-	node->type = S_ISDIR(stat_buff->st_mode) ? DIR_IDENTITY : FILE_IDENTITY;
+	node->type = S_ISDIR(stat_buff->st_mode) ? DIR_IDENTITY : S_ISLNK(stat_buff->st_mode) ? LINK_IDENTITY : FILE_IDENTITY;
 
 	return 0;
 }
@@ -85,7 +92,7 @@ int __get_dir_tree_stat(int *dirs, int *files, dir_tree *node)
 {
 	if (node->type == FILE_IDENTITY)
 		(*files)++;
-	else
+	else if (node->type == DIR_IDENTITY)
 		(*dirs)++;
 
 	for (int i = 0; i < node->num_of_children; i++)
@@ -119,7 +126,7 @@ dir_tree* __list_dirs(char* path, struct stat *stat_buff)
 	node->name = malloc(entry_name_len+1);
 
 
-	num = __get_dir_len(path);
+	num = __get_dir_num_of_children(path, stat_buff);
 
 	if (num == -1)
 	{
@@ -227,7 +234,12 @@ int __print_tree(dir_tree *dt, int offset)
 					off++;
 				}
 
-				if (dt->type == DIR_IDENTITY) printf("D"); else printf("F");
+				if (dt->type == DIR_IDENTITY)
+					printf("D");
+				else if (dt->type == LINK_IDENTITY)
+					printf(".L");
+				else
+					printf("F");
 
 				printf("    %ld\n", dt->mtime);
         }
