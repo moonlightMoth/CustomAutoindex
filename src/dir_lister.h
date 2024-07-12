@@ -277,9 +277,9 @@ int __print_tree(dir_tree *dt, int offset)
 }
 
 // public fun that runs recursion and prints num of dirs and files
-int print_tree(dir_tree *dt, int offset)
+int print_tree(dir_tree *dt)
 {
-	__print_tree(dt, offset);
+	__print_tree(dt, -1);
 
 	int dirs, files;
 

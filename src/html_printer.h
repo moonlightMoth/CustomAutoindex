@@ -85,10 +85,21 @@ int __write_to_file(char **buff, int buff_size)
 
 char* __get_body(char* dir) //TODO UNWRAP dir_tree TO HTML BODY
 {
+	chdir(dest_wd);
 	dir_tree *root = get_tree(dir);
+	printf("%s\n", dir);
+	int dirs, files;
+	get_dir_tree_stat(&dirs, &files, root);
+
+	printf("d:%d f:%d\n", dirs, files);
+
+	print_tree(root);
+
 	char* ret = malloc(strlen(root->name)+1);
 	memcpy(ret, root->name, strlen(root->name)+1);
 	destruct_dir_tree(root);
+
+	chdir(exec_wd);
 	return ret;
 }
 
@@ -163,7 +174,10 @@ int load_wds(char* dwd, char* ewd, char** args)
         while (*tmp++);
         sz = tmp - args[1];
         memcpy(dwd, args[1], sz);
-        dwd[sz] = 0;
+        dwd[sz] = '/';
+        dwd[sz+1] = '.';
+        dwd[sz+2] = '.';
+        dwd[sz+3] = '\0';
 		dest_wd = dwd;
     }
     else
@@ -175,7 +189,10 @@ int load_wds(char* dwd, char* ewd, char** args)
         args_ptr = args[1];
         dwd[sz-1] = '/';
         while (*args_ptr) dwd[sz++] = *args_ptr++;
-        dwd[sz] = 0;
+        dwd[sz] = '/';
+        dwd[sz+1] = '.';
+        dwd[sz+2] = '.';
+        dwd[sz+3] = '\0';
 		dest_wd = dwd;
     }
 
@@ -185,7 +202,7 @@ int load_wds(char* dwd, char* ewd, char** args)
         while (*tmp++);
         sz = tmp - args[0];
         memcpy(ewd, args[0], sz);
-        ewd[sz] = 0;
+        ewd[sz] = '\0';
 		exec_wd = ewd;
     }
     else
@@ -198,7 +215,7 @@ int load_wds(char* dwd, char* ewd, char** args)
         ewd[sz-1] = '/';
         while (*args_ptr) ewd[sz++] = *args_ptr++;
         while (ewd[sz--] != '/');
-        ewd[sz+1] = 0;
+        ewd[sz+1] = '\0';
 		exec_wd = ewd;
     }
 
