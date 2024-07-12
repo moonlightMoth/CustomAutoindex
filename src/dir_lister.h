@@ -36,17 +36,47 @@ int __get_dir_num_of_children(char* path, struct stat *stat_buff)
 	}
 
 	dp = opendir(path);
+
 	if (dp == NULL)
 	{
 		return -1;
 	}
 
-	while (ep = readdir(dp))
-		num++;
+	while (ep = readdir(dp)) num++;
 
 	closedir(dp);
 
 	return num - 2;
+}
+
+	
+// fills name buffer with ..> if overflowed
+
+int __fill_name_buff(char* src, char* dst)
+{
+	if (!src || !dst)
+	{
+		perror("NULL one of buffers: __fill_name_buff::dir_lister.h");
+		return -1;
+	}
+
+	int src_len = strlen(src);
+
+	if (src_len < MAX_NAME_LEN)
+	{
+		memcpy(dst, src, src_len);
+		dst[src_len] = '\0';
+	}
+	else
+	{
+		memcpy(dst, src, MAX_NAME_LEN-3);
+		dst[MAX_NAME_LEN] = '\0';
+		dst[MAX_NAME_LEN-1] = '>';
+		dst[MAX_NAME_LEN-2] = '.';
+		dst[MAX_NAME_LEN-3] = '.';
+	}
+
+	return 0;
 }
 
 int __fill_dummy(dir_tree* node, char* path, char* name, struct stat *stat_buff)
@@ -56,13 +86,7 @@ int __fill_dummy(dir_tree* node, char* path, char* name, struct stat *stat_buff)
 	if (node == NULL)
 		return 1;
 
-	while(i < MAX_NAME_LEN - 1 && name[i])
-	{
-		node->name[i] = name[i];
-		i++;
-	}
-
-	node->name[i] = '\0';
+	__fill_name_buff(name, node->name);
 
 	node->num_of_children = 0;
 	node->children = NULL;
@@ -139,8 +163,7 @@ dir_tree* __list_dirs(char* path, struct stat *stat_buff)
 	node->children = malloc(num*sizeof(char*));
 
 	node->num_of_children = num;
-	memcpy(node->name, entry_name, entry_name_len);
-	node->name[entry_name_len] = '\0';
+	__fill_name_buff(entry_name, node->name);
 
 
 	dp = opendir(path);
