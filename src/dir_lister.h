@@ -11,6 +11,8 @@
 #define FILE_IDENTITY 1
 #define LINK_IDENTITY 2
 
+#define MIN(a, b) (a) < (b) ? a : b
+
 typedef struct dt
 {
 	char* name;
@@ -122,7 +124,7 @@ dir_tree* __list_dirs(char* path, struct stat *stat_buff)
 	char* entry_name = __get_entry_name(path);
 	char* end_of_path = path + strlen(path);
 
-	entry_name_len = strlen(entry_name);
+	entry_name_len = MIN(strlen(entry_name), MAX_NAME_LEN-1);
 	node->name = malloc(entry_name_len+1);
 
 
@@ -137,7 +139,8 @@ dir_tree* __list_dirs(char* path, struct stat *stat_buff)
 	node->children = malloc(num*sizeof(char*));
 
 	node->num_of_children = num;
-	memcpy(node->name, entry_name, strlen(entry_name)+1);
+	memcpy(node->name, entry_name, entry_name_len);
+	node->name[entry_name_len] = '\0';
 
 
 	dp = opendir(path);
