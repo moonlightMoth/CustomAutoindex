@@ -170,29 +170,21 @@ int load_wds(char* dwd, char* ewd, char** args)
 	int sz;
     if (*args[1] == '/')
     {
-        tmp = args[1];
-        while (*tmp++);
-        sz = tmp - args[1];
-        memcpy(dwd, args[1], sz);
-        dwd[sz] = '/';
-        dwd[sz+1] = '.';
-        dwd[sz+2] = '.';
-        dwd[sz+3] = '\0';
+		tmp = args[1];
+		while (*tmp++);
+		while (*tmp != '/') tmp--;
+		sz = tmp - args[1];
+
+		if (sz == 0)
+			sz++;
+
+		memcpy(dwd, args[1], sz);
+		dwd[sz] = '\0';
 		dest_wd = dwd;
     }
     else
     {
         getcwd(dwd, PATH_MAX);
-        tmp = dwd;
-        while (*tmp++);
-        sz = tmp - dwd;
-        args_ptr = args[1];
-        dwd[sz-1] = '/';
-        while (*args_ptr) dwd[sz++] = *args_ptr++;
-        dwd[sz] = '/';
-        dwd[sz+1] = '.';
-        dwd[sz+2] = '.';
-        dwd[sz+3] = '\0';
 		dest_wd = dwd;
     }
 
