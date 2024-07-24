@@ -1,0 +1,21 @@
+name: C CI
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: dir_lister_test
+      run: make dir_lister_test
+    - name: html_printer_test
+      run: make html_printer_test
+    - name: full_test
+      run: make full_test
