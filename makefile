@@ -13,11 +13,11 @@ install_html_templates: target/custom_autoindex.out
 dir_lister_test:
 	make -s clean
 	make -s test_compile
-	./target/dir_lister_test.out test
+	./target/dir_lister_test.out testTree
 
 html_printer_test:
 	make -s clean
 	make -s test_compile
 	make -s install_html_templates
-	./target/custom_autoindex.out test
+	./target/custom_autoindex.out testTree
 	cat target/tree.html
