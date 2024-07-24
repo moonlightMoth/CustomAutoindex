@@ -27,6 +27,6 @@ html_printer_test:
 	./target/custom_autoindex.out testTree
 	cat target/tree.html
 
-full_test: target/custom_autoindex.out target/dir_lister_test.c
+full_test: target/custom_autoindex.out target/dir_lister_test.out
 	make -s dir_lister_test
 	make -s html_printer_test
