@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "dir_lister.h"
+#include "../src/dir_lister.h"
 
 int main(int argc, char** argv)
 {

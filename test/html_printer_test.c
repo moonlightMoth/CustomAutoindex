@@ -6,7 +6,7 @@
 #include <string.h>
 #include <limits.h>
 
-#include "html_printer.h"
+#include "../src/html_printer.h"
 
 //args must be path to dir to make dir list from
 //
