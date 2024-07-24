@@ -15,7 +15,12 @@ int main(int argc, char** argv)
 
 	dir_tree *root = get_tree(argv[1]);
 
+	sort_dir_tree(root);
+
 	print_tree(root);
 
 	destruct_dir_tree(root);
+
+
+	
 }

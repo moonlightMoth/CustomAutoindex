@@ -307,6 +307,99 @@ int destruct_dir_tree(dir_tree *node)
 	return 0;
 }
 
+void __swap(dir_tree **p1, dir_tree **p2)
+{
+	dir_tree *tmp;
+
+	tmp = *p1;
+	*p1 = *p2;
+	*p2 = tmp;
+
+}
+
+int __str_cmp(char *s1, char *s2)
+{
+	while (*s1 && *s2)
+	{
+		if (*s1 > *s2)
+			return 1;
+		else if (*s1 < *s2)
+			return -1;
+		s1++;
+		s2++;
+	}
+
+	if (!*s1 && !*s2)
+		return 0;
+
+	if (!*s1 && *s2)
+		return -1;
+
+	if (*s1 && !*s2)
+		return 1;
+
+	return -2;
+}
+
+int __sort_children(dir_tree **dt, int n)
+{
+	int maxIdx = 0;
+	char *max = dt[0]->name;
+
+	for (int i = 0; i < n; i++)
+	{
+		for (int j = 0; j < n-i; j++)
+		{
+			if (__str_cmp(dt[j]->name, max) == 1)
+			{
+				max = dt[j]->name;
+				maxIdx = j;
+			}
+		}
+		__swap(&dt[maxIdx], &dt[n-i-1]);
+		max = dt[0]->name;
+		maxIdx = 0;
+	}
+
+	return 0;
+}
+
+int sort_dir_tree(dir_tree *dt)
+{
+	int ret;
+
+	if (dt == NULL)
+	{
+		perror("Got NULL at sort_dir_tree");
+		return -1;
+	}
+
+	if (dt->num_of_children == 0)
+		return 0;
+
+	if (__sort_children(dt->children, dt->num_of_children) != 0)
+	{
+		perror("Got -1 in sort_dir_tree from __sort_children");
+		return -1;
+	}
+
+	for (int i = 0; i < dt->num_of_children; i++)
+	{
+		if (sort_dir_tree(dt->children[i]) != 0)
+		{
+			return -1;
+		}
+	}
+
+	return 0;
+
+}
+
+
+
+
+
+
 
 
 
