@@ -5,7 +5,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#define MAX_NAME_LEN 51
+#define MAX_NAME_LEN 50
 #define MAX_OFFSET 120
 #define DIR_IDENTITY 0
 #define FILE_IDENTITY 1
@@ -49,7 +49,7 @@ int __get_dir_num_of_children(char* path, struct stat *stat_buff)
 	return num - 2;
 }
 
-	
+
 // fills name buffer with ..> if overflowed
 
 int __fill_name_buff(char* src, char* dst)
@@ -60,6 +60,9 @@ int __fill_name_buff(char* src, char* dst)
 		return -1;
 	}
 
+	strcpy(dst, src);
+
+	#if 0
 	int src_len = strlen(src);
 
 	if (src_len < MAX_NAME_LEN)
@@ -75,6 +78,7 @@ int __fill_name_buff(char* src, char* dst)
 		dst[MAX_NAME_LEN-2] = '.';
 		dst[MAX_NAME_LEN-3] = '.';
 	}
+	#endif
 
 	return 0;
 }
@@ -148,7 +152,7 @@ dir_tree* __list_dirs(char* path, struct stat *stat_buff)
 	char* entry_name = __get_entry_name(path);
 	char* end_of_path = path + strlen(path);
 
-	entry_name_len = MIN(strlen(entry_name), MAX_NAME_LEN-1);
+	entry_name_len = strlen(entry_name);
 	node->name = malloc(entry_name_len+1);
 
 
@@ -235,11 +239,22 @@ int __print_tree(dir_tree *dt, int offset)
         }
 
         if (dt->children)
-                printf("%s\n", dt->name);
-        else
+		{
+				int len = strlen(dt->name);
+				if (len > MAX_NAME_LEN)
+                	printf("%.*s..>\n", MAX_NAME_LEN-3, dt->name);
+                else
+                	printf("%s\n", dt->name);
+		}
+		else
         {
-                printf("%s", dt->name);
-                off += strlen(dt->name);
+                int len = strlen(dt->name);
+				if (len > MAX_NAME_LEN)
+                	printf("%.*s..>", MAX_NAME_LEN-3, dt->name);
+                else
+                	printf("%s", dt->name);
+
+                off += len < MAX_NAME_LEN ? len : MAX_NAME_LEN;
 
                 while (off < MAX_OFFSET-25)
                 {
