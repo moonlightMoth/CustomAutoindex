@@ -15,14 +15,10 @@ install_html_templates: target/html_printer_test.out
 	cp template/header.html target/header.html
 	cp template/footer.html target/footer.html
 
-dir_lister_test:
-	make -s clean
-	make -s test_compile
+dir_lister_test: target/dir_lister_test.out
 	./target/dir_lister_test.out test/tree
 
-html_printer_test:
-	make -s clean
-	make -s test_compile
+html_printer_test: target/html_printer_test.out
 	make -s install_html_templates
 	./target/html_printer_test.out test/tree
 	cat target/tree.html
@@ -35,6 +31,8 @@ valgrind_test: target/html_printer_test.out target/dir_lister_test.out
 	echo "---------------------------------------------------------------------------"
 
 full_test:
+	make -s clean
+	make -s test_compile
 	make -s dir_lister_test
 	make -s html_printer_test
 	make -s valgrind_test

@@ -1,4 +1,4 @@
-name: C CI
+name: build+test
 
 on:
   push:
@@ -7,12 +7,35 @@ on:
     branches: [ "master" ]
 
 jobs:
-  build:
+  test-compile:
 
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v4
+    - name: test_compile
+      run: make test_compile
+    - name: dir_lister_test
+      run: make dir_lister_test
+    - name: html_printer_test
+      run: make html_printer_test
+    - name: install_valgrind
+      run: sudo apt install valgrind
+    - name: valgrind
+      run: make valgrind_test
+    - name: full_test
+      run: make full_test
+
+  prod-compile:
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - uses: actions/checkout@v4
+    - name: clean
+      run: make clean
+    - name: compile
+      run: make compile
     - name: dir_lister_test
       run: make dir_lister_test
     - name: html_printer_test
