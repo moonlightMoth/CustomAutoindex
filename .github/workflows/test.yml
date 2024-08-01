@@ -19,3 +19,5 @@ jobs:
       run: make html_printer_test
     - name: full_test
       run: make full_test
+    - name: valgrind
+      run: make valgrind_test

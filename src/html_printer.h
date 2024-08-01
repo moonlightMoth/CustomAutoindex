@@ -38,7 +38,7 @@ long __get_file_length(FILE *fptr)
 int __get_file_content(FILE* fptr, char* buffer)
 {
 	int i = 0;
-	char* retPtr, c;
+	char c;
 
 	if (fptr == NULL)
 	{
@@ -46,14 +46,10 @@ int __get_file_content(FILE* fptr, char* buffer)
 		return -1;
 	}
 
-	if (retPtr == NULL)
-	{
-		perror("NULL in get_file_content retPtr == null");
-		return -1;
-	}
-
 	while ((c = getc(fptr))!= EOF)
 		buffer[i++] = c;
+
+	buffer[i] = '\0';
 
 	return 0;
 }
@@ -80,6 +76,9 @@ int __write_to_file(char **buff, int buff_size)
 		putc('\n', optr);
 	}
 
+	fclose(optr);
+
+
 	return 0;
 }
 
@@ -91,9 +90,9 @@ char* __get_body(char* dir) //TODO UNWRAP dir_tree TO HTML BODY
 	int dirs, files;
 	get_dir_tree_stat(&dirs, &files, root);
 
-	printf("d:%d f:%d\n", dirs, files);
+	//printf("d:%d f:%d\n", dirs, files);
 
-	print_tree(root);
+	//print_tree(root);
 
 	char* ret = malloc(strlen(root->name)+1);
 	memcpy(ret, root->name, strlen(root->name)+1);
@@ -127,11 +126,11 @@ int print_html(char* dir)
     szh = __get_file_length(header_ptr);
     szf = __get_file_length(footer_ptr);
 
-    header_buffer = (char*) calloc(1, (szh) * sizeof(char));
+    header_buffer = (char*) malloc((szh) * sizeof(char) + 1);
 	body_buffer = __get_body(dir);
-    footer_buffer = (char*) calloc(1, (szf) * sizeof(char));
+    footer_buffer = (char*) malloc((szf) * sizeof(char) + 1);
 
-	merged = (char**) calloc (2, sizeof(void*));
+	merged = (char**) calloc (3, sizeof(void*));
 	merged[0] = header_buffer;
 	merged[1] = body_buffer;
 	merged[2] = footer_buffer;
@@ -158,6 +157,7 @@ int print_html(char* dir)
     free(header_buffer);
 	free(body_buffer);
     free(footer_buffer);
+	free(merged);
 
 }
 
@@ -188,6 +188,8 @@ int load_wds(char* dwd, char* ewd, char** args)
 		dest_wd = dwd;
     }
 
+	printf("%s\n", args[0]);
+
     if (*args[0] == '/')
     {
         tmp = args[0];
@@ -201,14 +203,15 @@ int load_wds(char* dwd, char* ewd, char** args)
     {
         getcwd(ewd, PATH_MAX);
         tmp = ewd;
-        while (*tmp++);
-        sz = tmp - ewd;
+        while (*tmp++); //move till end of str
+        sz = tmp - ewd; //count size of str
         args_ptr = args[0];
         ewd[sz-1] = '/';
         while (*args_ptr) ewd[sz++] = *args_ptr++;
+		sz--;
         while (ewd[sz--] != '/');
         ewd[sz+1] = '\0';
-		exec_wd = ewd;
+        exec_wd = ewd;
     }
 
 	return 0;

@@ -122,7 +122,7 @@ int __get_dir_tree_stat(int *dirs, int *files, dir_tree *node)
 {
 	if (node->type == FILE_IDENTITY)
 		(*files)++;
-	else if (node->type == DIR_IDENTITY)
+	else
 		(*dirs)++;
 
 	for (int i = 0; i < node->num_of_children; i++)
@@ -163,6 +163,8 @@ dir_tree* __list_dirs(char* path, struct stat *stat_buff)
 		__fill_dummy(node, path, entry_name, stat_buff);
 		return node;
 	}
+
+	node->type = DIR_IDENTITY;
 
 	node->children = malloc(num*sizeof(char*));
 
@@ -210,7 +212,7 @@ dir_tree* get_tree(char* path)
 {
 	char* buff = (char*) malloc(PATH_MAX + 1);
 	buff[PATH_MAX] = '\0';
-	memcpy(buff, path, strlen(path));
+	strcpy(buff, path);
 
 	struct stat *stat_buff = (struct stat*) malloc(sizeof(struct stat));
 

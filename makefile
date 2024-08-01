@@ -27,6 +27,14 @@ html_printer_test:
 	./target/html_printer_test.out test/tree
 	cat target/tree.html
 
-full_test: target/html_printer_test.out target/dir_lister_test.out
+valgrind_test: target/html_printer_test.out target/dir_lister_test.out
+	echo "---------------------------------------------------------------------------"
+	valgrind --leak-check=full --error-exitcode=1 --track-origins=yes --show-leak-kinds=all -s target/dir_lister_test.out test/tree/
+	echo "---------------------------------------------------------------------------"
+	valgrind --leak-check=full --error-exitcode=1 --track-origins=yes --show-leak-kinds=all -s target/html_printer_test.out test/tree/
+	echo "---------------------------------------------------------------------------"
+
+full_test:
 	make -s dir_lister_test
 	make -s html_printer_test
+	make -s valgrind_test
