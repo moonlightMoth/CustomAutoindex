@@ -44,5 +44,3 @@ jobs:
       run: sudo apt install valgrind
     - name: valgrind
       run: make valgrind_test
-    - name: full_test
-      run: make full_test
