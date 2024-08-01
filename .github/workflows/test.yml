@@ -17,9 +17,9 @@ jobs:
       run: make dir_lister_test
     - name: html_printer_test
       run: make html_printer_test
-    - name: full_test
-      run: make full_test
     - name: install_valgrind
       run: apt install valgrind
     - name: valgrind
       run: make valgrind_test
+    - name: full_test
+      run: make full_test
