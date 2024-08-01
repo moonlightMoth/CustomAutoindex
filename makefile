@@ -4,7 +4,7 @@ clean:
 
 compile: test/html_printer_test.c test/dir_lister_test.c
 	mkdir target
-	gcc -O2 target/html_printer_test test/html_printer_test.c
+	gcc -O2 target/html_printer_test.out test/html_printer_test.c
 
 test_compile: test/html_printer_test.c test/dir_lister_test.c
 	mkdir target
