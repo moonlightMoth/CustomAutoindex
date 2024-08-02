@@ -23,7 +23,7 @@ typedef struct dt
 	struct dt** children;
 } dir_tree;
 
-int __get_dir_num_of_children(char* path, struct stat *stat_buff)
+static int __get_dir_num_of_children(char* path, struct stat *stat_buff)
 {
 	int num = 0;
 	DIR *dp;
@@ -52,7 +52,7 @@ int __get_dir_num_of_children(char* path, struct stat *stat_buff)
 
 // fills name buffer with ..> if overflowed
 
-int __fill_name_buff(char* src, char* dst)
+static int __fill_name_buff(char* src, char* dst)
 {
 	if (!src || !dst)
 	{
@@ -83,7 +83,7 @@ int __fill_name_buff(char* src, char* dst)
 	return 0;
 }
 
-int __fill_dummy(dir_tree* node, char* path, char* name, struct stat *stat_buff)
+static int __fill_dummy(dir_tree* node, char* path, char* name, struct stat *stat_buff)
 {
 	int i = 0;
 
@@ -103,7 +103,7 @@ int __fill_dummy(dir_tree* node, char* path, char* name, struct stat *stat_buff)
 	return 0;
 }
 
-char* __get_entry_name (char* full_name)
+static char* __get_entry_name (char* full_name)
 {
 	int entry_name_len = strlen(full_name);
 	char* ret = full_name + entry_name_len - 1;
@@ -118,7 +118,7 @@ char* __get_entry_name (char* full_name)
 	return ret;
 }
 
-int __get_dir_tree_stat(int *dirs, int *files, dir_tree *node)
+static int __get_dir_tree_stat(int *dirs, int *files, dir_tree *node)
 {
 	if (node->type == FILE_IDENTITY)
 		(*files)++;
@@ -142,7 +142,7 @@ int get_dir_tree_stat(int *dirs, int *files, dir_tree *root)
 	__get_dir_tree_stat(dirs, files, root);
 }
 
-dir_tree* __list_dirs(char* path, struct stat *stat_buff)
+static dir_tree* __list_dirs(char* path, struct stat *stat_buff)
 {
 	dir_tree *node = (dir_tree*) malloc(sizeof(dir_tree));
 
@@ -225,7 +225,7 @@ dir_tree* get_tree(char* path)
 
 
 // private recursive fun to print dir_tree to console
-int __print_tree(dir_tree *dt, int offset)
+static int __print_tree(dir_tree *dt, int offset)
 {
         int off = 0;
         for (int i = 0; i < offset; i++)
@@ -324,7 +324,7 @@ int destruct_dir_tree(dir_tree *node)
 	return 0;
 }
 
-void __swap(dir_tree **p1, dir_tree **p2)
+static void __swap(dir_tree **p1, dir_tree **p2)
 {
 	dir_tree *tmp;
 
@@ -334,7 +334,7 @@ void __swap(dir_tree **p1, dir_tree **p2)
 
 }
 
-int __str_cmp(char *s1, char *s2)
+static int __str_cmp(char *s1, char *s2)
 {
 	while (*s1 && *s2)
 	{
@@ -358,7 +358,7 @@ int __str_cmp(char *s1, char *s2)
 	return -2;
 }
 
-int __sort_children(dir_tree **dt, int n)
+static int __sort_children(dir_tree **dt, int n)
 {
 	int maxIdx = 0;
 	char *max = dt[0]->name;

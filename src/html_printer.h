@@ -13,7 +13,7 @@
 
 char *dest_wd, *exec_wd;
 
-long __get_file_length(FILE *fptr)
+static long __get_file_length(FILE *fptr)
 {
 	long size;
 
@@ -35,7 +35,7 @@ long __get_file_length(FILE *fptr)
 	return size;
 }
 
-int __get_file_content(FILE* fptr, char* buffer)
+static int __get_file_content(FILE* fptr, char* buffer)
 {
 	int i = 0;
 	char c;
@@ -56,7 +56,7 @@ int __get_file_content(FILE* fptr, char* buffer)
 
 //write whole buffer to file
 
-int __write_to_file(char **buff, int buff_size)
+static int __write_to_file(char **buff, int buff_size)
 {
 	int i;
 	FILE * optr = fopen(OUT_FILE, "w");
@@ -82,7 +82,7 @@ int __write_to_file(char **buff, int buff_size)
 	return 0;
 }
 
-char* __get_body(char* dir) //TODO UNWRAP dir_tree TO HTML BODY
+static char* __get_body(char* dir) //TODO UNWRAP dir_tree TO HTML BODY
 {
 	chdir(dest_wd);
 	dir_tree *root = get_tree(dir);
