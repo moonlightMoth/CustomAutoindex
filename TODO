@@ -1,6 +1,6 @@
 1. save full names to dir_tree, but keep output short------------------DONE
 2. make tests (check.h)
-3. make private functions static
+3. make private functions static---------------------------------------DONE
 4. make valgrind tests-------------------------------------------------DONE
 5. refactor workflow
 6. make README.md
