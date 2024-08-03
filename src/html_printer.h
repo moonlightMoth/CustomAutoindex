@@ -173,7 +173,7 @@ static char* __get_file_line(dir_tree *node, char *prev_path)
 	}
 
 
-	sprintf(ret + pos, "%3.1f", f); //FIXME
+	sprintf(ret + pos, "%3.1f", f);
 	while (ret[pos]) pos++;
 
 	switch (i)
@@ -190,7 +190,7 @@ static char* __get_file_line(dir_tree *node, char *prev_path)
 	ret[pos++] = 'B';
 	ret[pos++] = ' ';
 
-	strftime(ret+pos, 20, "%d.%m.%y", localtime(&(node->mtime))); //FIXME
+	strftime(ret+pos, 20, "%d.%m.%y", localtime(&(node->mtime)));
 	while (ret[pos]) pos++;
 
 
@@ -214,7 +214,8 @@ static long __fill_buffer(char* buff, char* prev_path, dir_tree *node, int *offs
 	{
 		//update prev_path
 		int prev_path_len = strlen(prev_path);
-		prev_path[prev_path_len++] = '/';
+		if (prev_path_len != 0)
+			prev_path[prev_path_len++] = '/';
 		strcpy(prev_path + prev_path_len, node->name);
 
 		//print <details>
@@ -287,7 +288,7 @@ static long __fill_buffer(char* buff, char* prev_path, dir_tree *node, int *offs
 	}
 }
 
-static char* __get_body(char* dir) //TODO UNWRAP dir_tree TO HTML BODY
+static char* __get_body(char* dir)
 {
 	long buff_length, curr_pos = 1;
 	char *ret, *prev_path;
