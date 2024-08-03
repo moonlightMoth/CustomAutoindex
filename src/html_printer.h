@@ -4,12 +4,15 @@
 #include <errno.h>
 #include <unistd.h>
 #include <string.h>
+#include <time.h>
 
 #include "dir_lister.h"
 
 #define HEDAER_FILE "header.html"
 #define FOOTER_FILE "footer.html"
 #define OUT_FILE "tree.html"
+#define FILE_LINE_LEN 5120
+#define DIR_LINE_LEN 100
 
 char *dest_wd, *exec_wd;
 
@@ -82,12 +85,123 @@ static int __write_to_file(char **buff, int buff_size)
 	return 0;
 }
 
+static int __fill_line_with_offset(char* source, char* buff, int *offset, long *curr_pos)
+{
+	int i, len = strlen(source);
+
+	for (i = 0; i < *offset; i++)
+	{
+		buff[*curr_pos + i] = ' ';
+	}
+	*curr_pos += *offset;
+	memcpy(buff + *curr_pos, source, len);
+	*curr_pos += len;
+}
+
+static int __fill_line(char *source, char* buff, long* curr_pos)
+{
+	int len = strlen(source);
+	memcpy(buff + *curr_pos, source, len);
+	*curr_pos += len;
+}
+
 static long __count_body_bytes(dir_tree *dt)
 {
 	int files, dirs;
 	get_dir_tree_stat(&files, &dirs, dt);
 
-	return files*5120 + dirs*100 + 1;
+	return files*FILE_LINE_LEN + dirs*DIR_LINE_LEN + 1;
+}
+
+static char* __get_file_line(dir_tree *node, char *prev_path)
+{
+	char *ret = (char*) calloc(FILE_LINE_LEN, sizeof(char));
+	char *s0 = "<div class=\"hover-item\"><a href=\"https://ftp.moonlightmoth.ru/";
+	char *s1 = "<div class=\"size-date\"><span>";
+	char *s2 = "</span></div></div>\n";
+	int i = 0, pos = 0;
+	float f = 0;
+
+	while (s0[i])
+	{
+		ret[pos] = s0[i];
+		pos++; i++;
+	}
+	i = 0;
+
+	while (prev_path[i])
+	{
+		ret[pos] = prev_path[i];
+		pos++; i++;
+	}
+	i = 0;
+
+	while (node->name[i])
+	{
+		ret[pos] = node->name[i];
+		i++; pos++;
+	}
+	ret[pos++] = '\"';
+	ret[pos++] = '>';
+	i = 0;
+
+	while (node->name[i])
+	{
+		ret[pos] = node->name[i];
+		i++; pos++;
+	}
+	i = 0;
+
+	ret[pos++] = '<';
+	ret[pos++] = '/';
+	ret[pos++] = 'a';
+	ret[pos++] = '>';
+
+	while (s1[i])
+	{
+		ret[pos] = s1[i];
+		pos++; i++;
+	}
+	i = 0;
+
+	f = (float)node->size;
+
+	while (f > 1023)
+	{
+		f /= 1024;
+		i++;
+	}
+
+	snprintf(ret + pos, 5, "%#3.1f", f); //FIXME
+	while (ret[pos]) pos++;
+
+	switch (i)
+	{
+		case 0: ret[pos++] = ' '; break;
+		case 1: ret[pos++] = 'K'; break;
+		case 2: ret[pos++] = 'M'; break;
+		case 3: ret[pos++] = 'G'; break;
+		case 4: ret[pos++] = 'T';
+	}
+	i = 0;
+
+	ret[pos++] = 'B';
+	ret[pos++] = ' ';
+
+	//strftime(ret+pos, 10, "%d.%m.%Y", localtime(&(node->mtime))); //FIXME
+	//pos += 10;
+
+
+	while (s2[i])
+	{
+		ret[pos] = s2[i];
+		pos++; i++;
+	}
+	i = 0;
+
+	ret[pos] = '\n';
+
+	return ret;
 }
 
 static long __fill_buffer(char* buff, char* prev_path, dir_tree *node, int *offset, long *curr_pos)
@@ -102,25 +216,13 @@ static long __fill_buffer(char* buff, char* prev_path, dir_tree *node, int *offs
 		strcpy(prev_path + prev_path_len, node->name);
 
 		//print <details>
-		for (i = 0; i < *offset; i++)
-		{
-			buff[*curr_pos + i] = ' ';
-		}
-		*curr_pos += *offset;
-		memcpy(buff + *curr_pos, "<details>\n", 10);
-		*curr_pos += 10;
+		__fill_line_with_offset("<details>\n", buff, offset, curr_pos);
 
 		//increase offset
 		*offset += 2;
 
 		//print <summary>
-		for (i = 0; i < *offset; i++)
-		{
-			buff[*curr_pos + i] = ' ';
-		}
-		*curr_pos += *offset;
-		memcpy(buff + *curr_pos, "<summary>", 9);
-		*curr_pos += 9;
+		__fill_line_with_offset("<summary>", buff, offset, curr_pos);
 
 		// print name to buffer. If name_len > MAX_NAME_LEN, then print only MAX_NAME_LEN bytes of name
 		// and increase curr_pos by MAX_NAME_LEN. If name-len < MAX_NAME_LEN, then print full name and incr curr_pos
@@ -140,63 +242,31 @@ static long __fill_buffer(char* buff, char* prev_path, dir_tree *node, int *offs
 		}
 
 		//print </summary>
-		memcpy(buff + *curr_pos, "</summary>\n", 11);
-		*curr_pos += 11;
+		__fill_line("</summary>\n", buff, curr_pos);
 
 		//print <ul>
-
-		for (i = 0; i < *offset; i++)
-		{
-			buff[*curr_pos + i] = ' ';
-		}
-		*curr_pos += *offset;
-		memcpy(buff + *curr_pos, "<ul>\n", 5);
-		*curr_pos += 5;
+		__fill_line_with_offset("<ul>\n", buff, offset, curr_pos);
 
 		//incr offset for children
 		*offset += 2;
 
 		for (i = 0; i < node->num_of_children; i++)
 		{
-			for (j = 0; j < *offset; j++)
-			{
-				buff[*curr_pos + j] = ' ';
-			}
-			*curr_pos += *offset;
-			memcpy(buff + *curr_pos, "<li>\n", 5);
-			*curr_pos += 5;
+			__fill_line_with_offset("<li>\n", buff, offset, curr_pos);
 
 			__fill_buffer(buff, prev_path, node->children[i], offset, curr_pos);
 
-			for (j = 0; j < *offset; j++)
-			{
-				buff[*curr_pos + j] = ' ';
-			}
-			*curr_pos += *offset;
-			memcpy(buff + *curr_pos, "</li>\n", 6);
-			*curr_pos += 6;
+			__fill_line_with_offset("</li>\n", buff, offset, curr_pos);
 		}
 
 		//decrease offset from children
 		*offset -= 2;
 
 		//print </ul>\n
-		for (i = 0; i < *offset; i++)
-		{
-			buff[*curr_pos + i] = ' ';
-		}
-		*curr_pos += *offset;
-		memcpy(buff + *curr_pos, "</ul>\n", 6);
-		*curr_pos += 6;
+		__fill_line_with_offset("</ul>\n", buff, offset, curr_pos);
 
 		//print </details>\n
-		for (i = 0; i < *offset; i++)
-		{
-			buff[*curr_pos + i] = ' ';
-		}
-		*curr_pos += *offset;
-		memcpy(buff + *curr_pos, "</details>\n", 11);
-		*curr_pos += 11;
+		__fill_line_with_offset("</details>\n", buff, offset, curr_pos);
 
 		//delete this node from prev_path
 		prev_path[prev_path_len-1] = '\0';
@@ -205,13 +275,11 @@ static long __fill_buffer(char* buff, char* prev_path, dir_tree *node, int *offs
 	{
 		*offset += 2;
 
-		for (i = 0; i < *offset; i++)
-		{
-			buff[*curr_pos + i] = ' ';
-		}
-		*curr_pos += *offset;
-		memcpy(buff + *curr_pos, "sus\n", 4);
-		*curr_pos += 4;
+		char* file_line = __get_file_line(node, prev_path);
+
+		__fill_line_with_offset(file_line, buff, offset, curr_pos);
+
+		free(file_line);
 
 		*offset -= 2;
 	}
