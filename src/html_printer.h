@@ -164,7 +164,7 @@ static char* __get_file_line(dir_tree *node, char *prev_path)
 	}
 	i = 0;
 
-	f = (float)node->size;
+	f = (float)(node->size);
 
 	while (f > 1023)
 	{
@@ -172,7 +172,8 @@ static char* __get_file_line(dir_tree *node, char *prev_path)
 		i++;
 	}
 
-	snprintf(ret + pos, 5, "%#3.1f", f); //FIXME
+
+	sprintf(ret + pos, "%3.1f", f); //FIXME
 	while (ret[pos]) pos++;
 
 	switch (i)
@@ -181,15 +182,16 @@ static char* __get_file_line(dir_tree *node, char *prev_path)
 		case 1: ret[pos++] = 'K'; break;
 		case 2: ret[pos++] = 'M'; break;
 		case 3: ret[pos++] = 'G'; break;
-		case 4: ret[pos++] = 'T';
+		case 4: ret[pos++] = 'T'; break;
+		default: ret[pos++] = '?';
 	}
 	i = 0;
 
 	ret[pos++] = 'B';
 	ret[pos++] = ' ';
 
-	//strftime(ret+pos, 10, "%d.%m.%Y", localtime(&(node->mtime))); //FIXME
-	//pos += 10;
+	strftime(ret+pos, 20, "%d.%m.%y", localtime(&(node->mtime))); //FIXME
+	while (ret[pos]) pos++;
 
 
 	while (s2[i])
