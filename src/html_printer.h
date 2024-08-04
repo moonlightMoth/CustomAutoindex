@@ -61,7 +61,7 @@ static int __get_file_content(FILE* fptr, char* buffer)
 
 static int __write_to_file(char **buff, int buff_size)
 {
-	int i;
+	int i, j = 0;
 	FILE * optr = fopen(OUT_FILE, "w");
 
 	if (!optr)
@@ -72,10 +72,12 @@ static int __write_to_file(char **buff, int buff_size)
 
 	for (i = 0; i < buff_size; i++)
 	{
-		while (*buff[i])
+		while (buff[i][j])
 		{
-			putc(*buff[i]++, optr);
+			putc(buff[i][j], optr);
+			j++;
 		}
+		j = 0;
 		putc('\n', optr);
 	}
 
@@ -230,7 +232,7 @@ static long __fill_buffer(char* buff, char* prev_path, dir_tree *node, int *offs
 		// print name to buffer. If name_len > MAX_NAME_LEN, then print only MAX_NAME_LEN bytes of name
 		// and increase curr_pos by MAX_NAME_LEN. If name-len < MAX_NAME_LEN, then print full name and incr curr_pos
 		name_len = strlen(node->name);
-		memcpy(buff + *curr_pos, node->name, MAX_NAME_LEN);
+		memcpy(buff + *curr_pos, node->name, name_len+1);
 		if (name_len > MAX_NAME_LEN)
 		{
 			buff[*curr_pos + MAX_NAME_LEN -1] = '>';
@@ -268,11 +270,14 @@ static long __fill_buffer(char* buff, char* prev_path, dir_tree *node, int *offs
 		//print </ul>\n
 		__fill_line_with_offset("</ul>\n", buff, offset, curr_pos);
 
+		*offset -= 2;
+
 		//print </details>\n
 		__fill_line_with_offset("</details>\n", buff, offset, curr_pos);
 
 		//delete this node from prev_path
-		prev_path[prev_path_len-1] = '\0';
+		if (prev_path_len != 0)
+			prev_path[prev_path_len-1] = '\0';
 	}
 	else
 	{
@@ -308,6 +313,8 @@ static char* __get_body(char* dir)
 	}
 
 	destruct_dir_tree(root);
+	free(prev_path);
+	ret[curr_pos] = '\0';
 
 	chdir(exec_wd);
 	return ret;
