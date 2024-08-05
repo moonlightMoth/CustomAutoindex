@@ -216,9 +216,10 @@ static long __fill_buffer(char* buff, char* prev_path, dir_tree *node, int *offs
 	{
 		//update prev_path
 		int prev_path_len = strlen(prev_path);
-		if (prev_path_len != 0)
-			prev_path[prev_path_len++] = '/';
+
 		strcpy(prev_path + prev_path_len, node->name);
+		prev_path[prev_path_len + strlen(node->name)] = '/';
+		prev_path[prev_path_len + strlen(node->name) + 1] = '\0';
 
 		//print <details>
 		__fill_line_with_offset("<details>\n", buff, offset, curr_pos);
@@ -276,8 +277,7 @@ static long __fill_buffer(char* buff, char* prev_path, dir_tree *node, int *offs
 		__fill_line_with_offset("</details>\n", buff, offset, curr_pos);
 
 		//delete this node from prev_path
-		if (prev_path_len != 0)
-			prev_path[prev_path_len-1] = '\0';
+		prev_path[prev_path_len] = '\0';
 	}
 	else
 	{
