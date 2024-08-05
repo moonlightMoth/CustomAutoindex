@@ -4,3 +4,4 @@
 4. make valgrind tests-------------------------------------------------DONE
 5. refactor workflow
 6. make README.md
+7. fix strftime() at __get_file_line

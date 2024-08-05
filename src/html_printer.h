@@ -4,12 +4,15 @@
 #include <errno.h>
 #include <unistd.h>
 #include <string.h>
+#include <time.h>
 
 #include "dir_lister.h"
 
 #define HEDAER_FILE "header.html"
 #define FOOTER_FILE "footer.html"
 #define OUT_FILE "tree.html"
+#define FILE_LINE_LEN 5120
+#define DIR_LINE_LEN 100
 
 char *dest_wd, *exec_wd;
 
@@ -58,7 +61,7 @@ static int __get_file_content(FILE* fptr, char* buffer)
 
 static int __write_to_file(char **buff, int buff_size)
 {
-	int i;
+	int i, j = 0;
 	FILE * optr = fopen(OUT_FILE, "w");
 
 	if (!optr)
@@ -69,10 +72,12 @@ static int __write_to_file(char **buff, int buff_size)
 
 	for (i = 0; i < buff_size; i++)
 	{
-		while (*buff[i])
+		while (buff[i][j])
 		{
-			putc(*buff[i]++, optr);
+			putc(buff[i][j], optr);
+			j++;
 		}
+		j = 0;
 		putc('\n', optr);
 	}
 
@@ -82,21 +87,234 @@ static int __write_to_file(char **buff, int buff_size)
 	return 0;
 }
 
-static char* __get_body(char* dir) //TODO UNWRAP dir_tree TO HTML BODY
+static int __fill_line_with_offset(char* source, char* buff, int *offset, long *curr_pos)
 {
+	int i, len = strlen(source);
+
+	for (i = 0; i < *offset; i++)
+	{
+		buff[*curr_pos + i] = ' ';
+	}
+	*curr_pos += *offset;
+	memcpy(buff + *curr_pos, source, len);
+	*curr_pos += len;
+}
+
+static int __fill_line(char *source, char* buff, long* curr_pos)
+{
+	int len = strlen(source);
+	memcpy(buff + *curr_pos, source, len);
+	*curr_pos += len;
+}
+
+static long __count_body_bytes(dir_tree *dt)
+{
+	int files, dirs;
+	get_dir_tree_stat(&files, &dirs, dt);
+
+	return files*FILE_LINE_LEN + dirs*DIR_LINE_LEN + 1;
+}
+
+static char* __get_file_line(dir_tree *node, char *prev_path)
+{
+	char *ret = (char*) calloc(FILE_LINE_LEN, sizeof(char));
+	char *s0 = "<div class=\"hover-item\"><a href=\"https://ftp.moonlightmoth.ru/";
+	char *s1 = "<div class=\"size-date\"><span>";
+	char *s2 = "</span></div></div>\n";
+	int i = 0, pos = 0;
+	float f = 0;
+
+	while (s0[i])
+	{
+		ret[pos] = s0[i];
+		pos++; i++;
+	}
+	i = 0;
+
+	while (prev_path[i])
+	{
+		ret[pos] = prev_path[i];
+		pos++; i++;
+	}
+	i = 0;
+
+	while (node->name[i])
+	{
+		ret[pos] = node->name[i];
+		i++; pos++;
+	}
+	ret[pos++] = '\"';
+	ret[pos++] = '>';
+	i = 0;
+
+	while (node->name[i])
+	{
+		ret[pos] = node->name[i];
+		i++; pos++;
+	}
+	i = 0;
+
+	ret[pos++] = '<';
+	ret[pos++] = '/';
+	ret[pos++] = 'a';
+	ret[pos++] = '>';
+
+	while (s1[i])
+	{
+		ret[pos] = s1[i];
+		pos++; i++;
+	}
+	i = 0;
+
+	f = (float)(node->size);
+
+	while (f > 1023)
+	{
+		f /= 1024;
+		i++;
+	}
+
+
+	sprintf(ret + pos, "%3.1f", f);
+	while (ret[pos]) pos++;
+
+	switch (i)
+	{
+		case 0: ret[pos++] = ' '; break;
+		case 1: ret[pos++] = 'K'; break;
+		case 2: ret[pos++] = 'M'; break;
+		case 3: ret[pos++] = 'G'; break;
+		case 4: ret[pos++] = 'T'; break;
+		default: ret[pos++] = '?';
+	}
+	i = 0;
+
+	ret[pos++] = 'B';
+	ret[pos++] = ' ';
+
+	strftime(ret+pos, 20, "%d.%m.%y", localtime(&(node->mtime)));
+	while (ret[pos]) pos++;
+
+
+	while (s2[i])
+	{
+		ret[pos] = s2[i];
+		pos++; i++;
+	}
+	i = 0;
+
+	ret[pos] = '\n';
+
+	return ret;
+}
+
+static long __fill_buffer(char* buff, char* prev_path, dir_tree *node, int *offset, long *curr_pos)
+{
+	int i, name_len, j;
+
+	if (node->type == DIR_IDENTITY)
+	{
+		//update prev_path
+		int prev_path_len = strlen(prev_path);
+
+		strcpy(prev_path + prev_path_len, node->name);
+		prev_path[prev_path_len + strlen(node->name)] = '/';
+		prev_path[prev_path_len + strlen(node->name) + 1] = '\0';
+
+		//print <details>
+		__fill_line_with_offset("<details>\n", buff, offset, curr_pos);
+
+		//increase offset
+		*offset += 2;
+
+		//print <summary>
+		__fill_line_with_offset("<summary>", buff, offset, curr_pos);
+
+		// print name to buffer. If name_len > MAX_NAME_LEN, then print only MAX_NAME_LEN bytes of name
+		// and increase curr_pos by MAX_NAME_LEN. If name-len < MAX_NAME_LEN, then print full name and incr curr_pos
+		name_len = strlen(node->name);
+		memcpy(buff + *curr_pos, node->name, name_len+1);
+		if (name_len > MAX_NAME_LEN)
+		{
+			buff[*curr_pos + MAX_NAME_LEN -1] = '>';
+			buff[*curr_pos + MAX_NAME_LEN -2] = '.';
+			buff[*curr_pos + MAX_NAME_LEN -3] = '.';
+			buff[*curr_pos + MAX_NAME_LEN -4] = '.';
+			*curr_pos += MAX_NAME_LEN;
+		}
+		else
+		{
+			*curr_pos += name_len;
+		}
+
+		//print </summary>
+		__fill_line("</summary>\n", buff, curr_pos);
+
+		//print <ul>
+		__fill_line_with_offset("<ul>\n", buff, offset, curr_pos);
+
+		//incr offset for children
+		*offset += 2;
+
+		for (i = 0; i < node->num_of_children; i++)
+		{
+			__fill_line_with_offset("<li>\n", buff, offset, curr_pos);
+
+			__fill_buffer(buff, prev_path, node->children[i], offset, curr_pos);
+
+			__fill_line_with_offset("</li>\n", buff, offset, curr_pos);
+		}
+
+		//decrease offset from children
+		*offset -= 2;
+
+		//print </ul>\n
+		__fill_line_with_offset("</ul>\n", buff, offset, curr_pos);
+
+		*offset -= 2;
+
+		//print </details>\n
+		__fill_line_with_offset("</details>\n", buff, offset, curr_pos);
+
+		//delete this node from prev_path
+		prev_path[prev_path_len] = '\0';
+	}
+	else
+	{
+		*offset += 2;
+
+		char* file_line = __get_file_line(node, prev_path);
+
+		__fill_line_with_offset(file_line, buff, offset, curr_pos);
+
+		free(file_line);
+
+		*offset -= 2;
+	}
+}
+
+static char* __get_body(char* dir)
+{
+	long buff_length, curr_pos = 1;
+	char *ret, *prev_path;
+	int i, offset = 2;
+
 	chdir(dest_wd);
 	dir_tree *root = get_tree(dir);
-	printf("%s\n", dir);
-	int dirs, files;
-	get_dir_tree_stat(&dirs, &files, root);
+	sort_dir_tree(root);
+	buff_length = __count_body_bytes(root);
+	ret = malloc(buff_length);
+	prev_path = (char*) calloc(1, PATH_MAX+1);
+	*ret = '\n';
 
-	//printf("d:%d f:%d\n", dirs, files);
+	for (i = 0; i < root->num_of_children; i++)
+	{
+		__fill_buffer(ret, prev_path, root->children[i], &offset, &curr_pos);
+	}
 
-	//print_tree(root);
-
-	char* ret = malloc(strlen(root->name)+1);
-	memcpy(ret, root->name, strlen(root->name)+1);
 	destruct_dir_tree(root);
+	free(prev_path);
+	ret[curr_pos] = '\0';
 
 	chdir(exec_wd);
 	return ret;
@@ -193,7 +411,9 @@ int load_wds(char* dwd, char* ewd, char** args)
     if (*args[0] == '/')
     {
         tmp = args[0];
-        while (*tmp++);
+        while (*tmp) tmp++;
+		while (*tmp != '/')
+			tmp--;
         sz = tmp - args[0];
         memcpy(ewd, args[0], sz);
         ewd[sz] = '\0';
