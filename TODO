@@ -4,4 +4,5 @@
 4. make valgrind tests-------------------------------------------------DONE
 5. refactor workflow
 6. make README.md
-7. fix strftime() at __get_file_line
+7. fix strftime() at __get_file_line-----------------------------------DONE
+8. fix html file name len to MAX_NAME_LEN..>
