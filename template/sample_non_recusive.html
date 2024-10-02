@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        :root {
+            --terminal-background: #101010;
+            --terminal-primary: #EAEAEA;
+            --terminal-accent-strong: #CF0924;
+            --terminal-accent: #73A1CD;
+            --terminal-accent-alt: #32BB31;
+            --terminal-dull: #26A7AD;
+
+            --font-size-header: 34px;
+            --font-size-lesser-header: 28px;
+            --font-size-body: 24px;
+
+        }
+
+
+        body {
+            background-color: var(--terminal-background);
+            font-size: var(--font-size-body);
+            font-family: "JetBrains mono", monospace;
+            padding-left: 5%;
+            padding-right: 5%;
+            align-items: center;
+        }
+
+        .header {
+            min-height: 100px;
+            display: flex;
+            flex-direction: row;
+            justify-content: space-evenly;
+            font-size: var(--font-size-header);
+            align-items: center;
+            padding-bottom: 10px;
+
+        }
+
+        .header-item {
+            color: var(--terminal-accent);
+            text-decoration: none;
+        }
+
+        .header-item:hover {
+            color: var(--terminal-accent-alt);
+            text-decoration: none;
+        }
+
+        .header-item-selected {
+            color: var(--terminal-accent-alt);
+        }
+
+        span {
+            color: var(--terminal-primary);
+            white-space:nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        a {
+            color: var(--terminal-primary);
+            white-space:nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        summary {
+            color: var(--terminal-primary);
+        }
+
+        summary:hover {
+            color: var(--terminal-accent);
+        }
+
+        details{
+            min-width: 100%;
+            margin-top: 5px;
+            margin-bottom: 5px;
+        }
+
+        li {
+            color: var(--terminal-background);
+        }
+        
+        ul {
+            padding-inline-start: 10px;
+        }
+
+        .size-date{
+            margin-left: auto;
+            padding-left: 10px;
+        }
+
+        .hover-item{
+            display: flex;
+            min-width: 100%;
+        }
+
+        .hover-item:hover span {
+            color: var(--terminal-accent);
+        }
+        .hover-item:hover a {
+            color: var(--terminal-accent);
+        }
+
+        @media (max-width: 1536px) {
+            :root {
+                --font-size-header: 30px;
+                --font-size-lesser-header: 24px;
+                --font-size-body: 20px;
+            }
+            ul{
+                padding-inline-start: 10px;
+            }
+        }
+
+        @media (max-width: 1024px) {
+            :root {
+                --font-size-header: 28px;
+                --font-size-lesser-header: 22px;
+                --font-size-body: 18px;
+            }
+            ul{
+                padding-inline-start: 10px;
+            }
+        }
+
+        @media (max-width: 712px) {
+            :root {
+                --font-size-header: 24px;
+                --font-size-lesser-header: 18px;
+                --font-size-body: 14px;
+            }
+            ul{
+                padding-inline-start: 10px;
+            }
+
+        }
+
+        @media (max-width: 512px) {
+            :root {
+                --font-size-header: 22px;
+                --font-size-lesser-header: 16px;
+                --font-size-body: 12px;
+            }
+
+            .header {
+                flex-direction: column;
+                padding-bottom: 5%;
+                align-items: end;
+                gap: 10px;
+            }
+            ul{
+                padding-inline-start: 5px;
+            }
+
+            
+        }
+    </style>
+
+</head>
+
+<body>
+    <div class="header">
+
+        <a class="header-item" href="https://moonlightmoth.ru">Home</a>
+
+        <a class="header-item" href="https://moonlightmoth.ru/apps">Applications</a>
+
+        <a class="header-item-selected" href="#">FTP</a>
+
+        <a class="header-item" href="https://cv.moonlightmoth.ru">CV</a>
+
+    </div>
+
+    <ul>
+        <li><div class="hover-item"><a href="https://ftp.moonlightmoth.ru/file_0">file_0</a><div class="size-date"><span>4.4MB 23.02.12</span></div></div></li>
+        <li><div class="hover-item"><a href="https://ftp.moonlightmoth.ru/file_1">file_1</a><div class="size-date"><span>4.4MB 23.02.12</span></div></div></li>
+        <li><div class="hover-item"><a href="https://ftp.moonlightmoth.ru/dir_0">dir_0</a><div class="size-date"><span>--------------</span></div></div></li>
+        <li><div class="hover-item"><a href="https://ftp.moonlightmoth.ru/file_2">file_2</a><div class="size-date"><span>1023MB 23.02.12</span></div></div></li>
+        <li><div class="hover-item"><a href="https://ftp.moonlightmoth.ru/dir_1">dir_1</a><div class="size-date"><span>--------------</span></div></div></li>
+        <li><div class="hover-item"><a href="https://ftp.moonlightmoth.ru/dir_2">dir_2</a><div class="size-date"><span>--------------</span></div></div></li>
+        
+    </ul>
+    
+</body>
+
+</html>
