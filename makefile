@@ -44,3 +44,9 @@ full_test:
 	make custom_autoindex_test
 	make -s valgrind_test
 
+package: target/custom_autoindex target/header.html target/footer.html
+	mkdir target/custom_autoindex_root
+	cp target/custom_autoindex target/custom_autoindex_root/custom_autoindex
+	cp target/header.html target/custom_autoindex_root/header.html
+	cp target/footer.html target/custom_autoindex_root/footer.html
+	tar -cvzf "target/custom_autoindex_$(shell date +build_%y%m%d%H%m%S).tar.gz" target/custom_autoindex_root
