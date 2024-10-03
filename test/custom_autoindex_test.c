@@ -5,6 +5,8 @@
 #include <unistd.h>
 #include <string.h>
 #include <limits.h>
+#include <time.h>
+#include <threads.h>
 
 #include "../src/html_printer.h"
 
@@ -22,6 +24,35 @@ int __check_argc(int argc)
     return 1;
 }
 
+int start_renew_loop(char* dir, int num_of_times)
+{
+    struct timespec tp;
+    tp.tv_nsec = 0;
+
+    if (num_of_times < 0)
+    {
+        tp.tv_sec = 60;
+        while (1) {
+            print_html(dir);
+            thrd_sleep(&tp, 0);
+        }
+    }
+    else
+    {
+        tp.tv_sec = 3;
+        while (num_of_times)
+        {
+            print_html(dir);
+            printf("Created next iteration of tree.html, %d remaining\n", num_of_times);
+            thrd_sleep(&tp, 0);
+            num_of_times--;
+        }
+    }
+
+    return 0;
+
+}
+
 int main(int argc, char **argv)
 {
     char* dwd = malloc(PATH_MAX+1);
@@ -33,13 +64,11 @@ int main(int argc, char **argv)
     if (load_wds(dwd, ewd, argv) == 1)
         return 1;
 
-    print_html(argv[1]);
+//TODO make socket and executors
 
-    char* buff = print_to_buffer_html_one_level(argv[1]);
 
-    printf("%s\n", buff);
+    //start_renew_loop(argv[1], 3);
 
-    free(buff);
     free(dwd);
     free(ewd);
 

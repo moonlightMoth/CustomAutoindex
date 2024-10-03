@@ -10,43 +10,56 @@
 #define DIR_IDENTITY 0
 #define FILE_IDENTITY 1
 #define LINK_IDENTITY 2
+#define FULL_TREE -1
 
 #define MIN(a, b) (a) < (b) ? a : b
 
 typedef struct dt
 {
-	char* name;
-	int num_of_children;
-	off_t size;
-	time_t mtime;
-	char type;
-	struct dt** children;
+    char* name;
+    int num_of_children;
+    off_t size;
+    time_t mtime;
+    char type;
+    struct dt** children;
 } dir_tree;
 
-static int __get_dir_num_of_children(char* path, struct stat *stat_buff)
+//----------------------------------------------------------------------------------------------------
+//util functions--------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------
+
+static void __swap(dir_tree **p1, dir_tree **p2)
 {
-	int num = 0;
-	DIR *dp;
-	struct dirent *ep;
+    dir_tree *tmp;
 
-	int err = lstat(path, stat_buff);
-	if (err || S_ISLNK(stat_buff->st_mode))
-	{
-		return -1;
-	}
+    tmp = *p1;
+    *p1 = *p2;
+    *p2 = tmp;
 
-	dp = opendir(path);
+}
 
-	if (dp == NULL)
-	{
-		return -1;
-	}
+static int __str_cmp(char *s1, char *s2)
+{
+    while (*s1 && *s2)
+    {
+        if (*s1 > *s2)
+            return 1;
+        else if (*s1 < *s2)
+            return -1;
+        s1++;
+        s2++;
+    }
 
-	while (ep = readdir(dp)) num++;
+    if (!*s1 && !*s2)
+        return 0;
 
-	closedir(dp);
+    if (!*s1 && *s2)
+        return -1;
 
-	return num - 2;
+    if (*s1 && !*s2)
+        return 1;
+
+    return -2;
 }
 
 
@@ -54,81 +67,116 @@ static int __get_dir_num_of_children(char* path, struct stat *stat_buff)
 
 static int __fill_name_buff(char* src, char* dst)
 {
-	if (!src || !dst)
-	{
-		perror("NULL one of buffers: __fill_name_buff::dir_lister.h");
-		return -1;
-	}
+    if (!src || !dst)
+    {
+        perror("NULL one of buffers: __fill_name_buff::dir_lister.h");
+        return -1;
+    }
 
-	strcpy(dst, src);
+    strcpy(dst, src);
 
-	#if 0
-	int src_len = strlen(src);
+    #if 0
+    int src_len = strlen(src);
 
-	if (src_len < MAX_NAME_LEN)
-	{
-		memcpy(dst, src, src_len);
-		dst[src_len] = '\0';
-	}
-	else
-	{
-		memcpy(dst, src, MAX_NAME_LEN-3);
-		dst[MAX_NAME_LEN] = '\0';
-		dst[MAX_NAME_LEN-1] = '>';
-		dst[MAX_NAME_LEN-2] = '.';
-		dst[MAX_NAME_LEN-3] = '.';
-	}
-	#endif
+    if (src_len < MAX_NAME_LEN)
+    {
+        memcpy(dst, src, src_len);
+        dst[src_len] = '\0';
+    }
+    else
+    {
+        memcpy(dst, src, MAX_NAME_LEN-3);
+        dst[MAX_NAME_LEN] = '\0';
+        dst[MAX_NAME_LEN-1] = '>';
+        dst[MAX_NAME_LEN-2] = '.';
+        dst[MAX_NAME_LEN-3] = '.';
+    }
+    #endif
 
-	return 0;
+    return 0;
 }
+
+static int __get_dir_num_of_children(char* path, struct stat *stat_buff)
+{
+    int num = 0;
+    DIR *dp;
+    struct dirent *ep;
+
+    int err = lstat(path, stat_buff);
+    if (err || S_ISLNK(stat_buff->st_mode))
+    {
+        return -1;
+    }
+
+    dp = opendir(path);
+
+    if (dp == NULL)
+    {
+        return -1;
+    }
+
+    while (ep = readdir(dp)) num++;
+
+    closedir(dp);
+
+    return num - 2;
+}
+
+//----------------------------------------------------------------------------------------------------
+//recursive workflow functions------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------
+
 
 static int __fill_dummy(dir_tree* node, char* path, char* name, struct stat *stat_buff)
 {
-	int i = 0;
+    int i = 0;
 
-	if (node == NULL)
-		return 1;
+    if (node == NULL)
+        return 1;
 
-	__fill_name_buff(name, node->name);
+    __fill_name_buff(name, node->name);
 
-	node->num_of_children = 0;
-	node->children = NULL;
+    node->num_of_children = 0;
+    node->children = NULL;
 
-	lstat(path, stat_buff);
-	node->size = stat_buff->st_size;
-	node->mtime = stat_buff->st_mtime;
-	node->type = S_ISDIR(stat_buff->st_mode) ? DIR_IDENTITY : S_ISLNK(stat_buff->st_mode) ? LINK_IDENTITY : FILE_IDENTITY;
+    lstat(path, stat_buff);
+    node->size = stat_buff->st_size;
+    node->mtime = stat_buff->st_mtime;
+    node->type = S_ISDIR(stat_buff->st_mode) ? DIR_IDENTITY : S_ISLNK(stat_buff->st_mode) ? LINK_IDENTITY : FILE_IDENTITY;
 
-	return 0;
+    return 0;
 }
+
+// get short name
 
 static char* __get_entry_name (char* full_name)
 {
-	int entry_name_len = strlen(full_name);
-	char* ret = full_name + entry_name_len - 1;
+    int entry_name_len = strlen(full_name);
+    char* ret = full_name + entry_name_len - 1;
 
-	if (entry_name_len != 1 && *ret == '/')
-		*ret = '\0';
+    if (entry_name_len != 1 && *ret == '/')
+        *ret = '\0';
 
-	while (ret >= full_name && *ret != '/') ret--;
+    while (ret >= full_name && *ret != '/') ret--;
 
-	ret++;
+    ret++;
 
-	return ret;
+    return ret;
 }
+
+//get number of files and dirs in dir_tree
 
 static int __get_dir_tree_stat(int *dirs, int *files, dir_tree *node)
 {
-	if (node->type == FILE_IDENTITY)
-		(*files)++;
-	else
-		(*dirs)++;
+    if (node->type == FILE_IDENTITY)
+        (*files)++;
+    else
+        (*dirs)++;
 
-	for (int i = 0; i < node->num_of_children; i++)
-	{
-		__get_dir_tree_stat(dirs, files, node->children[i]);
-	}
+    for (int i = 0; i < node->num_of_children; i++)
+    {
+        __get_dir_tree_stat(dirs, files, node->children[i]);
+    }
 }
 
 
@@ -136,95 +184,107 @@ static int __get_dir_tree_stat(int *dirs, int *files, dir_tree *node)
 
 int get_dir_tree_stat(int *dirs, int *files, dir_tree *root)
 {
-	*dirs = 0;
-	*files = 0;
+    *dirs = 0;
+    *files = 0;
 
-	__get_dir_tree_stat(dirs, files, root);
+    __get_dir_tree_stat(dirs, files, root);
 }
 
-static dir_tree* __list_dirs(char* path, struct stat *stat_buff)
+// recursive fun to construct full dir_tree
+// @args 
+//       char* path ------------------ path to dir to get tree from
+//       struct stat *stat_buff ------ ptr to memory used to retrieve stat of files and dirs, 
+//                                     should be empty struct stat allocated in higher level function
+//       int currLevel --------------- current depth of dir_tree building, used to determine if 
+//                                     it is time to stop recursion, should be 0 at start
+//		 const int maxLevel ---------- max depth of dir_tree build              
+
+static dir_tree* __list_dirs(char* path, struct stat *stat_buff, int currLevel, const int maxLevel)
 {
-	dir_tree *node = (dir_tree*) malloc(sizeof(dir_tree));
+    dir_tree *node = (dir_tree*) malloc(sizeof(dir_tree));
 
-	int num, i = 0, j = 0, entry_name_len;
-	DIR *dp;
-	struct dirent *ep;
-	char* entry_name = __get_entry_name(path);
-	char* end_of_path = path + strlen(path);
+    int num, i = 0, j = 0, entry_name_len;
+    DIR *dp;
+    struct dirent *ep;
+    char* entry_name = __get_entry_name(path);
+    char* end_of_path = path + strlen(path);
 
-	entry_name_len = strlen(entry_name);
-	node->name = malloc(entry_name_len+1);
-
-
-	num = __get_dir_num_of_children(path, stat_buff);
-
-	if (num == -1)
-	{
-		__fill_dummy(node, path, entry_name, stat_buff);
-		return node;
-	}
-
-	node->type = DIR_IDENTITY;
-
-	node->children = malloc(num*sizeof(char*));
-
-	node->num_of_children = num;
-	__fill_name_buff(entry_name, node->name);
+    entry_name_len = strlen(entry_name);
+    node->name = malloc(entry_name_len+1);
 
 
-	dp = opendir(path);
+    num = __get_dir_num_of_children(path, stat_buff);
 
-	if (dp == NULL)
-	{
-		perror("Got null while open dir");
-		return NULL;
-	}
+    if (num == -1 || maxLevel == currLevel)
+    {
+        __fill_dummy(node, path, entry_name, stat_buff);
+        return node;
+    }
 
-	while (ep = readdir(dp))
-	{
-		if (!(
-				ep->d_name[0] == '.' && ep->d_name[1] == '.' && ep->d_name[2] == '\0' ||
-				ep->d_name[0] == '.' && ep->d_name[1] == '\0'
-			))
-		{
-			*end_of_path = '/';
-			while (ep->d_name[j])
-			{
-				end_of_path[1 + j] = ep->d_name[j];
-				j++;
-			}
-			end_of_path[j+1] = '\0';
+    node->type = DIR_IDENTITY;
 
-			node->children[i++] = __list_dirs(path, stat_buff);
+    node->children = malloc(num*sizeof(char*));
 
-			*end_of_path = '\0';
-			j = 0;
-		}
-	}
+    node->num_of_children = num;
+    __fill_name_buff(entry_name, node->name);
 
-	closedir(dp);
 
-	return node;
+    dp = opendir(path);
+
+    if (dp == NULL)
+    {
+        perror("Got null while open dir");
+        return NULL;
+    }
+
+    while (ep = readdir(dp))
+    {
+        if (!(
+                ep->d_name[0] == '.' && ep->d_name[1] == '.' && ep->d_name[2] == '\0' ||
+                ep->d_name[0] == '.' && ep->d_name[1] == '\0'
+            ))
+        {
+            *end_of_path = '/';
+            while (ep->d_name[j])
+            {
+                end_of_path[1 + j] = ep->d_name[j];
+                j++;
+            }
+            end_of_path[j+1] = '\0';
+            
+            node->children[i++] = __list_dirs(path, stat_buff, currLevel+1, maxLevel);
+            
+            *end_of_path = '\0';
+            j = 0;
+        }
+    }
+
+    closedir(dp);
+
+    return node;
 }
 
+// public fun to construct full dir_tree
 
 dir_tree* get_tree(char* path)
 {
-	char* buff = (char*) malloc(PATH_MAX + 1);
-	buff[PATH_MAX] = '\0';
-	strcpy(buff, path);
+    char* buff = (char*) malloc(PATH_MAX + 1);
+    buff[PATH_MAX] = '\0';
+    strcpy(buff, path);
 
-	struct stat *stat_buff = (struct stat*) malloc(sizeof(struct stat));
+    struct stat *stat_buff = (struct stat*) malloc(sizeof(struct stat));
 
-	dir_tree *dt = __list_dirs(buff, stat_buff);
+    dir_tree *dt = __list_dirs(buff, stat_buff, 0, FULL_TREE);
 
-	free(buff);
-	free(stat_buff);
-	return dt;
+    free(buff);
+    free(stat_buff);
+    return dt;
 }
 
 
 // private recursive fun to print dir_tree to console
+// @args dir_tree *dt    dir_tree to print
+//		 int offset      current offset from start of line in console
 static int __print_tree(dir_tree *dt, int offset)
 {
         int off = 0;
@@ -241,20 +301,20 @@ static int __print_tree(dir_tree *dt, int offset)
         }
 
         if (dt->children)
-		{
-				int len = strlen(dt->name);
-				if (len > MAX_NAME_LEN)
-                	printf("%.*s..>\n", MAX_NAME_LEN-3, dt->name);
-                else
-                	printf("%s\n", dt->name);
-		}
-		else
         {
                 int len = strlen(dt->name);
-				if (len > MAX_NAME_LEN)
-                	printf("%.*s..>", MAX_NAME_LEN-3, dt->name);
+                if (len > MAX_NAME_LEN)
+                    printf("%.*s..>\n", MAX_NAME_LEN-3, dt->name);
                 else
-                	printf("%s", dt->name);
+                    printf("%s\n", dt->name);
+        }
+        else
+        {
+                int len = strlen(dt->name);
+                if (len > MAX_NAME_LEN)
+                    printf("%.*s..>", MAX_NAME_LEN-3, dt->name);
+                else
+                    printf("%s", dt->name);
 
                 off += len < MAX_NAME_LEN ? len : MAX_NAME_LEN;
 
@@ -266,25 +326,25 @@ static int __print_tree(dir_tree *dt, int offset)
 
                 printf("%ld", dt->size);
 
-				int dig = 0;
-				long num = dt->size;
-				while (num > 0){ dig++; num = num / 10; }
-				off += dig;
+                int dig = 0;
+                long num = dt->size;
+                while (num > 0){ dig++; num = num / 10; }
+                off += dig;
 
-				while (off < MAX_OFFSET)
-				{
-					printf(".");
-					off++;
-				}
+                while (off < MAX_OFFSET)
+                {
+                    printf(".");
+                    off++;
+                }
 
-				if (dt->type == DIR_IDENTITY)
-					printf("D");
-				else if (dt->type == LINK_IDENTITY)
-					printf(".L");
-				else
-					printf("F");
+                if (dt->type == DIR_IDENTITY)
+                    printf("D");
+                else if (dt->type == LINK_IDENTITY)
+                    printf(".L");
+                else
+                    printf("F");
 
-				printf("    %ld\n", dt->mtime);
+                printf("    %ld\n", dt->mtime);
         }
 
         for (int i = 0; i < dt->num_of_children; i++)
@@ -296,127 +356,110 @@ static int __print_tree(dir_tree *dt, int offset)
 // public fun that runs recursion and prints num of dirs and files
 int print_tree(dir_tree *dt)
 {
-	__print_tree(dt, -1);
+    __print_tree(dt, -1);
 
-	int dirs, files;
+    int dirs, files;
 
-	get_dir_tree_stat(&dirs, &files, dt);
+    get_dir_tree_stat(&dirs, &files, dt);
 
-	printf("\n\nDirectories num: %d\nFiles num: %d\n", dirs, files);
+    printf("\n\nDirectories num: %d\nFiles num: %d\n", dirs, files);
 }
 
 
+// public fun to destruct dir_tree
 int destruct_dir_tree(dir_tree *node)
 {
-	free(node->name);
+    free(node->name);
 
-	if (node->children)
-	{
-		for (int i = 0; i < node->num_of_children; i++)
-		{
-			destruct_dir_tree(node->children[i]);
-		}
-		free(node->children);
-	}
+    if (node->children)
+    {
+        for (int i = 0; i < node->num_of_children; i++)
+        {
+            destruct_dir_tree(node->children[i]);
+        }
+        free(node->children);
+    }
 
-	free(node);
+    free(node);
 
-	return 0;
-}
-
-static void __swap(dir_tree **p1, dir_tree **p2)
-{
-	dir_tree *tmp;
-
-	tmp = *p1;
-	*p1 = *p2;
-	*p2 = tmp;
-
-}
-
-static int __str_cmp(char *s1, char *s2)
-{
-	while (*s1 && *s2)
-	{
-		if (*s1 > *s2)
-			return 1;
-		else if (*s1 < *s2)
-			return -1;
-		s1++;
-		s2++;
-	}
-
-	if (!*s1 && !*s2)
-		return 0;
-
-	if (!*s1 && *s2)
-		return -1;
-
-	if (*s1 && !*s2)
-		return 1;
-
-	return -2;
+    return 0;
 }
 
 static int __sort_children(dir_tree **dt, int n)
 {
-	int maxIdx = 0;
-	char *max = dt[0]->name;
+    int maxIdx = 0;
+    char *max = dt[0]->name;
 
-	for (int i = 0; i < n; i++)
-	{
-		for (int j = 0; j < n-i; j++)
-		{
-			if (__str_cmp(dt[j]->name, max) == 1)
-			{
-				max = dt[j]->name;
-				maxIdx = j;
-			}
-		}
-		__swap(&dt[maxIdx], &dt[n-i-1]);
-		max = dt[0]->name;
-		maxIdx = 0;
-	}
+    for (int i = 0; i < n; i++)
+    {
+        for (int j = 0; j < n-i; j++)
+        {
+            if (__str_cmp(dt[j]->name, max) == 1)
+            {
+                max = dt[j]->name;
+                maxIdx = j;
+            }
+        }
+        __swap(&dt[maxIdx], &dt[n-i-1]);
+        max = dt[0]->name;
+        maxIdx = 0;
+    }
 
-	return 0;
+    return 0;
 }
 
 int sort_dir_tree(dir_tree *dt)
 {
-	int ret;
+    int ret;
 
-	if (dt == NULL)
-	{
-		perror("Got NULL at sort_dir_tree");
-		return -1;
-	}
+    if (dt == NULL)
+    {
+        perror("Got NULL at sort_dir_tree");
+        return -1;
+    }
 
-	if (dt->num_of_children == 0)
-		return 0;
+    if (dt->num_of_children == 0)
+        return 0;
 
-	if (__sort_children(dt->children, dt->num_of_children) != 0)
-	{
-		perror("Got -1 in sort_dir_tree from __sort_children");
-		return -1;
-	}
+    if (__sort_children(dt->children, dt->num_of_children) != 0)
+    {
+        perror("Got -1 in sort_dir_tree from __sort_children");
+        return -1;
+    }
 
-	for (int i = 0; i < dt->num_of_children; i++)
-	{
-		if (sort_dir_tree(dt->children[i]) != 0)
-		{
-			return -1;
-		}
-	}
+    for (int i = 0; i < dt->num_of_children; i++)
+    {
+        if (sort_dir_tree(dt->children[i]) != 0)
+        {
+            return -1;
+        }
+    }
 
-	return 0;
+    return 0;
 
 }
 
+//----------------------------------------------------------------------------------------------------
+//non-recursive workflow functions--------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------
 
+// get non-recursive dir_tree
+// @args char* path - path of dir to start tree of
 
+dir_tree* get_non_recursive_tree(char* path)
+{
+    char* buff = (char*) malloc(PATH_MAX + 1);
+    buff[PATH_MAX] = '\0';
+    strcpy(buff, path);
 
+    struct stat *stat_buff = (struct stat*) malloc(sizeof(struct stat));
 
+    dir_tree *dt = __list_dirs(buff, stat_buff, 0, 1);
 
+    free(buff);
+    free(stat_buff);
+    return dt;
+}
 
 
 

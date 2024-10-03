@@ -7,17 +7,29 @@
 
 int main(int argc, char** argv)
 {
-	if (argc != 2)
-	{
-		perror("Not one arg");
-		return 1;
-	}
+    if (argc != 2)
+    {
+        perror("Not one arg");
+        return 1;
+    }
 
-	dir_tree *root = get_tree(argv[1]);
+    //test recursive
 
-	sort_dir_tree(root);
+    dir_tree *root = get_tree(argv[1]);
 
-	print_tree(root);
+    sort_dir_tree(root);
 
-	destruct_dir_tree(root);
+    print_tree(root);
+
+    destruct_dir_tree(root);
+
+    //test non-recursive
+
+    root = get_non_recursive_tree(argv[1]);
+
+    sort_dir_tree(root);
+
+    print_tree(root);
+
+    destruct_dir_tree(root);
 }

@@ -27,7 +27,7 @@ jobs:
     - name: full_test
       run: make full_test
 
-  prod-compile:
+  build:
     runs-on: ubuntu-latest
 
     steps:
@@ -35,13 +35,5 @@ jobs:
     - uses: actions/checkout@v4
     - name: clean
       run: make clean
-    - name: compile
-      run: make compile
-    - name: dir_lister_test
-      run: make dir_lister_test
-    - name: html_printer_test
-      run: make html_printer_test
-    - name: install_valgrind
-      run: sudo apt install valgrind
-    - name: valgrind
-      run: make valgrind_test
+    - name: build
+      run: make build
