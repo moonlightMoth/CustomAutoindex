@@ -35,6 +35,11 @@ int main(int argc, char **argv)
 
 	print_html(argv[1]);
 
+	char* buff = print_to_buffer_html_one_level(argv[1]);
+
+	printf("%s\n", buff);
+
+	free(buff);
 	free(dwd);
 	free(ewd);
 

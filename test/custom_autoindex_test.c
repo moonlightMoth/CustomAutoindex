@@ -67,7 +67,7 @@ int main(int argc, char **argv)
 //TODO make socket and executors
 
 
-	start_renew_loop(argv[1], 3);
+	//start_renew_loop(argv[1], 3);
 
 	free(dwd);
 	free(ewd);

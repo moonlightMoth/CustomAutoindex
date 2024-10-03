@@ -13,7 +13,19 @@ int main(int argc, char** argv)
 		return 1;
 	}
 
+	//test recursive
+
 	dir_tree *root = get_tree(argv[1]);
+
+	sort_dir_tree(root);
+
+	print_tree(root);
+
+	destruct_dir_tree(root);
+
+	//test non-recursive
+
+	root = get_non_recursive_tree(argv[1]);
 
 	sort_dir_tree(root);
 

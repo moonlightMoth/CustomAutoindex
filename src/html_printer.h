@@ -13,6 +13,7 @@
 #define OUT_FILE "tree.html"
 #define FILE_LINE_LEN 5120
 #define DIR_LINE_LEN 100
+#define ONE_LEVEL_OFFSET 2
 
 char *dest_wd, *exec_wd;
 
@@ -435,4 +436,206 @@ int load_wds(char* dwd, char* ewd, char** args)
     }
 
 	return 0;
+}
+
+//----------------------------------------------------------------------------------------------------
+//non-recursive workflow functions--------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------
+
+//prints non-recursive dir_tree html according to sample_non_recursive.html
+
+static long __fill_buffer_non_recursive(char* buff, char* prev_path, dir_tree *node, long *curr_pos)
+{
+	int i, name_len, j;
+
+	char* file_line = __get_file_line(node, prev_path);
+
+	__fill_line(file_line, buff, curr_pos);
+
+	free(file_line);
+}
+
+static char* __get_body_one_level(char* dir)
+{
+	long buff_length, curr_pos = 1;
+	char *ret, *prev_path;
+	int i;
+
+	chdir(dest_wd);
+	dir_tree *root = get_non_recursive_tree(dir);
+	sort_dir_tree(root);
+	buff_length = __count_body_bytes(root); // too much space, can be optimized
+	ret = malloc(buff_length);
+	prev_path = (char*) calloc(1, PATH_MAX+1);
+	*ret = '\n';
+
+	__fill_line("<ul>\n", ret, &curr_pos);
+
+	for (i = 0; i < root->num_of_children; i++)
+	{
+		__fill_line("<li>", ret, &curr_pos);
+		__fill_buffer_non_recursive(ret, prev_path, root->children[i], &curr_pos);
+		__fill_line("</li>\n", ret, &curr_pos);
+	}
+
+	__fill_line("</ul>\n", ret, &curr_pos);
+
+	destruct_dir_tree(root);
+	free(prev_path);
+	ret[curr_pos] = '\0';
+
+	chdir(exec_wd);
+	return ret;
+}
+
+// merges array of chars to one buffer buff
+static char* __write_to_buffer(char** merged, int cnt)
+{
+	int           i, lens[cnt], len;
+	long          buff_len = 0, curr_pos = 0;
+	char*         ret, ptr;
+	
+	cnt--;
+
+	for (i = 0; i < cnt; i++)
+	{
+		len = strlen(merged[i]);
+		buff_len += len;
+		lens[i] = len;
+	}
+
+	ret = (char*) malloc(buff_len * sizeof(char) + 1);
+
+	for (i = 0; i < cnt; i++)
+	{
+		strcpy(ret + curr_pos, merged[i]);
+		curr_pos += lens[i];
+	}
+
+	ret[curr_pos] = '\0';
+	
+	return ret;
+}
+
+// returns full one level html as buffer
+char* print_to_buffer_html_one_level(char* dir)
+{
+	int           i = 0;
+    long          szh, szf;
+    char          *header_buffer, *body_buffer, *footer_buffer, **merged, *ret;
+
+	chdir(exec_wd);
+
+    FILE *header_ptr = fopen(HEDAER_FILE, "r");
+    FILE *footer_ptr = fopen(FOOTER_FILE, "r");
+
+    if (header_ptr == NULL) {
+        perror("Cannot open html header file");
+        return 1;
+    }
+    if (footer_ptr == NULL) {
+        perror("Cannot open html footer file");
+        return 1;
+    }
+
+
+    szh = __get_file_length(header_ptr);
+    szf = __get_file_length(footer_ptr);
+
+    header_buffer = (char*) malloc((szh) * sizeof(char) + 1);
+	body_buffer = __get_body_one_level(dir);
+    footer_buffer = (char*) malloc((szf) * sizeof(char) + 1);
+
+	merged = (char**) calloc (3, sizeof(void*));
+	merged[0] = header_buffer;
+	merged[1] = body_buffer;
+	merged[2] = footer_buffer;
+
+    __get_file_content(header_ptr, header_buffer);
+    __get_file_content(footer_ptr, footer_buffer);
+
+    fclose(header_ptr);
+    fclose(footer_ptr);
+
+    if (header_buffer == NULL)
+    {
+        perror("Cannot read html header file");
+        return 1;
+    }
+    if (footer_buffer == NULL)
+    {
+        perror("Cannot read html footer file");
+        return 1;
+    }
+
+	ret = __write_to_buffer(merged, 3);
+
+    free(header_buffer);
+	free(body_buffer);
+    free(footer_buffer);
+	free(merged);
+
+	return ret;
+
+}
+
+//prints non-recursive dir_tree html according to sample_non_recursive.html to file
+
+int print_html_one_level(char* dir)
+{
+	int i = 0;
+    long szh, szf;
+    char *header_buffer, *body_buffer, *footer_buffer, **merged;
+
+	chdir(exec_wd);
+
+    FILE *header_ptr = fopen(HEDAER_FILE, "r");
+    FILE *footer_ptr = fopen(FOOTER_FILE, "r");
+
+    if (header_ptr == NULL) {
+        perror("Cannot open html header file");
+        return 1;
+    }
+    if (footer_ptr == NULL) {
+        perror("Cannot open html footer file");
+        return 1;
+    }
+
+
+    szh = __get_file_length(header_ptr);
+    szf = __get_file_length(footer_ptr);
+
+    header_buffer = (char*) malloc((szh) * sizeof(char) + 1);
+	body_buffer = __get_body_one_level(dir);
+    footer_buffer = (char*) malloc((szf) * sizeof(char) + 1);
+
+	merged = (char**) calloc (3, sizeof(void*));
+	merged[0] = header_buffer;
+	merged[1] = body_buffer;
+	merged[2] = footer_buffer;
+
+    __get_file_content(header_ptr, header_buffer);
+    __get_file_content(footer_ptr, footer_buffer);
+
+    fclose(header_ptr);
+    fclose(footer_ptr);
+
+    if (header_buffer == NULL)
+    {
+        perror("Cannot read html header file");
+        return 1;
+    }
+    if (footer_buffer == NULL)
+    {
+        perror("Cannot read html footer file");
+        return 1;
+    }
+
+	__write_to_file(merged, 3);
+
+    free(header_buffer);
+	free(body_buffer);
+    free(footer_buffer);
+	free(merged);
+
 }
