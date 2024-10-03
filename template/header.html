@@ -15,9 +15,9 @@
             --terminal-accent-alt: #32BB31;
             --terminal-dull: #26A7AD;
 
-            --font-size-header: 28px;
-            --font-size-lesser-header: 22px;
-            --font-size-body: 18px;
+            --font-size-header: 34px;
+            --font-size-lesser-header: 28px;
+            --font-size-body: 24px;
 
         }
 
@@ -109,6 +109,17 @@
         }
         .hover-item:hover a {
             color: var(--terminal-accent);
+        }
+
+        @media (max-width: 1536px) {
+            :root {
+                --font-size-header: 30px;
+                --font-size-lesser-header: 24px;
+                --font-size-body: 20px;
+            }
+            ul{
+                padding-inline-start: 10px;
+            }
         }
 
         @media (max-width: 1024px) {

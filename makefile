@@ -22,8 +22,9 @@ dir_lister_test: target/dir_lister_test.out
 
 html_printer_test: target/html_printer_test.out
 	make -s install_html_templates
-	./target/html_printer_test.out test/tree
+	./target/html_printer_test.out test/tree >> target/tree_one_level.html
 	cat target/tree.html
+	cat target/tree_one_level.html
 
 custom_autoindex_test: target/custom_autoindex_test.out
 	./target/custom_autoindex_test.out test/tree
