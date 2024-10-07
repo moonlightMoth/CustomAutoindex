@@ -7,6 +7,7 @@
 #include <time.h>
 
 #include "dir_lister.h"
+#include <linux/limits.h>
 
 #define HEDAER_FILE "header.html"
 #define FOOTER_FILE "footer.html"
