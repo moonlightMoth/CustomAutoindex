@@ -47,7 +47,7 @@ int main (int argc, char** argv)
         printf("%s", HELP_STR);
         return 1;
     }
-    
-    
     printf("%s", "correct args");
+
+	
 }
