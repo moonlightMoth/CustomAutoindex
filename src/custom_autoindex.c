@@ -2,6 +2,7 @@
 #include <stdio.h>
 
 #include "html_printer.h"
+#include "server.h"
 
 #define HELP_STR "Usage:\n" \
                     "custom_autoindex <mode> <directory>\n" \
@@ -47,7 +48,24 @@ int main (int argc, char** argv)
         printf("%s", HELP_STR);
         return 1;
     }
-    printf("%s", "correct args");
 
-	
+	if (strcmp(argv[1], "-s") == 0 || strcmp(argv[1], "--serve") == 0)
+	{
+		if(run_server() != 0)
+		{
+			perror("failed socker operation");
+			return -1;
+		}
+	}
+
+	return 0;
 }
+
+
+
+
+
+
+
+
+

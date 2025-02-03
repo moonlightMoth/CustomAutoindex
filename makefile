@@ -7,6 +7,13 @@ build: src/html_printer.h src/dir_lister.h src/custom_autoindex.h src/custom_aut
 	gcc -O2 -o target/custom_autoindex src/custom_autoindex.c
 	make -s install_html_templates
 
+
+compile: src/html_printer.h src/dir_lister.h src/custom_autoindex.h src/custom_autoindex.c template/header.html template/footer.html src/server.h
+	make -s clean
+	mkdir target
+	gcc -O2 -o target/custom_autoindex src/custom_autoindex.c
+	make -s install_html_templates
+
 test_compile: test/html_printer_test.c test/dir_lister_test.c test/custom_autoindex_test.c
 	mkdir target
 	gcc -g -o target/html_printer_test.out test/html_printer_test.c
