@@ -408,24 +408,24 @@ int print_html(char* dir)
 
 }
 
-//must be called before all operations with header
+//must be called before all operations with header or footer
+// parses zero arg to gain executable path and destination arg to gain path to start search dest dir from
 
-
-int load_wds(char* dwd, char* ewd, char** args)
+int load_wds(char* dwd, char* ewd, char* exec_arg, char* dest_arg)
 {
     char *tmp, *args_ptr;
     int sz;
-    if (*args[1] == '/')
+    if (*dest_arg == '/')
     {
-        tmp = args[1];
+        tmp = dest_arg;
         while (*tmp++);
         while (*tmp != '/') tmp--;
-        sz = tmp - args[1];
+        sz = tmp - dest_arg;
 
         if (sz == 0)
             sz++;
 
-        memcpy(dwd, args[1], sz);
+        memcpy(dwd, dest_arg, sz);
         dwd[sz] = '\0';
         dest_wd = dwd;
     }
@@ -435,16 +435,14 @@ int load_wds(char* dwd, char* ewd, char** args)
         dest_wd = dwd;
     }
 
-    //printf("%s\n", args[0]);
-
-    if (*args[0] == '/')
+    if (*exec_arg == '/')
     {
-        tmp = args[0];
+        tmp = exec_arg;
         while (*tmp) tmp++;
         while (*tmp != '/')
             tmp--;
-        sz = tmp - args[0];
-        memcpy(ewd, args[0], sz);
+        sz = tmp - exec_arg;
+        memcpy(ewd, exec_arg, sz);
         ewd[sz] = '\0';
         exec_wd = ewd;
     }
@@ -454,7 +452,7 @@ int load_wds(char* dwd, char* ewd, char** args)
         tmp = ewd;
         while (*tmp++); //move till end of str
         sz = tmp - ewd; //count size of str
-        args_ptr = args[0];
+        args_ptr = exec_arg;
         ewd[sz-1] = '/';
         while (*args_ptr) ewd[sz++] = *args_ptr++;
         sz--;

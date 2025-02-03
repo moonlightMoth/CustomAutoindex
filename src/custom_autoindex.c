@@ -12,7 +12,7 @@
                     "   -s, --serve    start http server on port 8080 to generate html from <directory> root\n" \
                     "   -S, --single   print to stdout single html that contains <directory> content\n"
 
-static int check_args(int argc, char** argv)
+static int __check_args(int argc, char** argv)
 {
     int             modes_cnt = 0;
 
@@ -43,11 +43,24 @@ static int check_args(int argc, char** argv)
 
 int main (int argc, char** argv)
 {
-    if (check_args(argc, argv) != 0)
+	char                       *dwd, *ewd; // destination dir and executable dir
+
+
+    if (__check_args(argc, argv) != 0)
     {
         printf("%s", HELP_STR);
         return 1;
     }
+
+	dwd = malloc(PATH_MAX+1);
+    ewd = malloc(PATH_MAX+1);
+
+    if (load_wds(dwd, ewd, argv[0], argv[2]) != 0)
+	{
+		perror("failed to load working dirs");
+		return -1;
+	}
+
 
 	if (strcmp(argv[1], "-s") == 0 || strcmp(argv[1], "--serve") == 0)
 	{
@@ -57,6 +70,9 @@ int main (int argc, char** argv)
 			return -1;
 		}
 	}
+
+	free(dwd);
+	free(ewd);
 
 	return 0;
 }

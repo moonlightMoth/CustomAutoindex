@@ -61,7 +61,7 @@ int main(int argc, char **argv)
     if (__check_argc(argc) == 1)
         return 1;
 
-    if (load_wds(dwd, ewd, argv) == 1)
+    if (load_wds(dwd, ewd, argv[0], argv[1]) == 1)
         return 1;
 
 //TODO make socket and executors
