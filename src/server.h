@@ -40,6 +40,8 @@ static int __extract_uri(char* dest, char* read_buff)
 		while (*uri_ptr != '/' && *uri_ptr != '\0')
 			uri_ptr++;
 
+		uri_ptr++;
+
 		while (*(uri_ptr + uri_len) != ' ' && *(uri_ptr + uri_len) != '\0')
 			uri_len++;
 
@@ -55,6 +57,8 @@ static int __extract_uri(char* dest, char* read_buff)
 		*(dest + 1) = '/';
 
 		memcpy(dest+2, uri_ptr, uri_len);
+
+		*(dest + 2 + uri_len) = '\0';
 
 		return 0;
 }
@@ -133,7 +137,7 @@ int run_server()
 
 	   	send(new_socket, out_buffer, strlen(out_buffer), 0);
 
-		printf("%s %s %s\n", "Sent\"", out_buffer, "\"in response");
+		printf("%s\n", "Sent response");
 
 		close(new_socket);
 

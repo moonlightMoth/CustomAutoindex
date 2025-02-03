@@ -8,9 +8,9 @@
                     "custom_autoindex <mode> <directory>\n" \
                     "   <directory>   root of directory to generate html from\n" \
                     "Modes:\n" \
-                    "   -t, --tree     make tree with full depth starting from <directory> to stdout and exit\n" \
+                    "   -t, --tree     make tree with full depth starting from <directory> to file and exit\n" \
                     "   -s, --serve    start http server on port 8080 to generate html from <directory> root\n" \
-                    "   -S, --single   print to stdout single html that contains <directory> content\n"
+                    "   -S, --single   print to stdout single html that contains <directory> content\n" //TODO make --tree to stdout
 
 static int __check_args(int argc, char** argv)
 {
@@ -43,7 +43,7 @@ static int __check_args(int argc, char** argv)
 
 int main (int argc, char** argv)
 {
-	char                       *dwd, *ewd; // destination dir and executable dir
+	char          *dwd, *ewd; // destination dir and executable dir
 
 
     if (__check_args(argc, argv) != 0)
@@ -79,7 +79,7 @@ int main (int argc, char** argv)
 
 	if(strcmp(argv[1], "-t") == 0 || strcmp(argv[1], "--tree") == 0)
 	{
-		
+		print_html(argv[2]);
 	}
 
 	free(dwd);

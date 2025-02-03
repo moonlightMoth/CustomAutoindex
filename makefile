@@ -1,16 +1,10 @@
 clean:
 	rm -rf target/
 
-build: src/html_printer.h src/dir_lister.h src/custom_autoindex.h src/custom_autoindex.c template/header.html template/footer.html
-	make -s clean
-	mkdir target
-	gcc -O2 -o target/custom_autoindex src/custom_autoindex.c
-	make -s install_html_templates
-
-
 compile: src/html_printer.h src/dir_lister.h src/custom_autoindex.h src/custom_autoindex.c template/header.html template/footer.html src/server.h
 	make -s clean
 	mkdir target
+	cp README target/README
 	gcc -O2 -o target/custom_autoindex src/custom_autoindex.c
 	make -s install_html_templates
 
@@ -54,9 +48,11 @@ full_test:
 	make custom_autoindex_test
 	make -s valgrind_test
 
-package: target/custom_autoindex target/header.html target/footer.html
+package: target/custom_autoindex target/header.html target/footer.html target/README
 	mkdir target/custom_autoindex_root
 	cp target/custom_autoindex target/custom_autoindex_root/custom_autoindex
 	cp target/header.html target/custom_autoindex_root/header.html
 	cp target/footer.html target/custom_autoindex_root/footer.html
-	tar -cvzf "target/custom_autoindex_$(shell date +build_%y%m%d%H%m%S).tar.gz" target/custom_autoindex_root
+	cp target/README target/custom_autoindex_root/README
+	tar -C target -cvzf "target/custom_autoindex_$(shell date +build_%y%m%d%H%m%S).tar.gz" custom_autoindex_root
+	rm -rf target/custom_autoindex target/header.html target/footer.html target/README target/custom_autoindex_root
