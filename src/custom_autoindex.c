@@ -71,6 +71,17 @@ int main (int argc, char** argv)
 		}
 	}
 
+
+	if (strcmp(argv[1], "-S") == 0 || strcmp(argv[1], "--single") == 0)
+	{
+		printf("%s\n", print_to_buffer_html_one_level(argv[2]));
+	}
+
+	if(strcmp(argv[1], "-t") == 0 || strcmp(argv[1], "--tree") == 0)
+	{
+		
+	}
+
 	free(dwd);
 	free(ewd);
 
