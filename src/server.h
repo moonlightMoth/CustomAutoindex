@@ -1,8 +1,14 @@
+#ifndef SERVER_H_SEEN
+#define SERVER_H_SEEN
+
+
 #include <arpa/inet.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/socket.h>
 #include <unistd.h>
+
+#include "html_printer.h"
 
 #define PORT 8080
 
@@ -45,21 +51,41 @@ int run_server()
         perror("listen failed");
         return -1;
     }
-    if ((new_socket = accept(server_fd, (struct sockaddr*) &address, &addrlen)) < 0)
+
+	while (1)
 	{
-        perror("accept failed");
-        return -1;
-    }
-    valread = read(new_socket, buffer, 1024 - 1); // subtract 1 for the null
+		if ((new_socket = accept(server_fd, (struct sockaddr*) &address, &addrlen)) < 0)
+		{
+        	perror("accept failed");
+        	return -1;
+    	}
 
-    printf("%s\n", buffer);
-    send(new_socket, hello, strlen(hello), 0);
+    	valread = read(new_socket, buffer, 1024 - 1); // subtract 1 for the null
 
-    printf("Hello message sent\n");
+		char* uri_ptr = buffer;
+		int uri_len = 0;
 
-    // closing the connected socket
-    close(new_socket);
-    // closing the listening socket
-    close(server_fd);
+		while (*uri_ptr != '/' && *uri_ptr != '\0')
+			uri_ptr++;
+
+		while (*(uri_ptr + uri_len) != ' ' && *(uri_ptr + uri_len) != '\0')
+			uri_len++;
+
+
+		printf("%s %b %s %.*s\n", "got request from", address.sin_addr.s_addr, "with uri", uri_len, uri_ptr);
+
+	   	send(new_socket, buffer, strlen(buffer), 0);
+
+		close(new_socket);
+
+	}
+
+
     return 0;
 }
+
+
+
+
+
+#endif

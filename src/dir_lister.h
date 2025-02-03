@@ -1,3 +1,6 @@
+#ifndef DIR_LISTER_H_SEEN
+#define DIR_LISTER_H_SEEN
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -463,3 +466,7 @@ dir_tree* get_non_recursive_tree(char* path)
 
 
 
+
+
+
+#endif

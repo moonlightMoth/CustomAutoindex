@@ -1,3 +1,6 @@
+#ifndef HTML_PRINTER_H_SEEN
+#define HTML_PRINTER_H_SEEN
+
 #include <stdio.h>
 #include <sys/socket.h>
 #include <stdlib.h>
@@ -672,3 +675,11 @@ int print_html_one_level(char* dir)
     free(merged);
 
 }
+
+
+
+
+
+
+
+#endif

@@ -19,6 +19,8 @@ test_compile: test/html_printer_test.c test/dir_lister_test.c test/custom_autoin
 	gcc -g -o target/html_printer_test.out test/html_printer_test.c
 	gcc -g -o target/dir_lister_test.out test/dir_lister_test.c
 	gcc -g -o target/custom_autoindex_test.out test/custom_autoindex_test.c
+	gcc -g -o target/custom_autoindex.out src/custom_autoindex.c
+	
 
 install_html_templates: template/header.html template/footer.html
 	cp template/header.html target/header.html
