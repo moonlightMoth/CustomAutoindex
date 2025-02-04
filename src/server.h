@@ -170,6 +170,7 @@ int run_server()
 		printf("Sent response to %s\n", inet_ntoa(address.sin_addr));
 
 		close(new_socket);
+		free(out_buffer);
 
 	}
 

@@ -33,7 +33,7 @@ int main(int argc, char **argv)
     if (load_wds(dwd, ewd, argv[0], argv[1]) == 1)
         return 1;
 
-    print_html(argv[1]);
+//    print_html(argv[1]);
 
     char* buff = print_to_buffer_html_one_level(argv[1]);
 

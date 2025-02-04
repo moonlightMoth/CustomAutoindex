@@ -15,8 +15,8 @@
 #define HEDAER_FILE "header.html"
 #define FOOTER_FILE "footer.html"
 #define OUT_FILE "tree.html"
-#define FILE_LINE_LEN 5120
-#define DIR_LINE_LEN 100
+#define FILE_LINE_LEN 512
+#define DIR_LINE_LEN 512
 #define ONE_LEVEL_OFFSET 2
 
 char *dest_wd, *exec_wd;
@@ -94,30 +94,30 @@ static int __write_to_file(char **buff, int buff_size)
 
 static int __fill_line_with_offset(char* source, char* buff, int offset, long *curr_pos)
 {
-    int i, len = strlen(source);
+    int i;
 
     for (i = 0; i < offset; i++)
     {
         buff[*curr_pos + i] = ' ';
     }
     *curr_pos = *curr_pos + offset;
-    memcpy(buff + *curr_pos, source, len);
-    *curr_pos += len;
+    strcpy(buff + *curr_pos, source);
+    *curr_pos += strlen(source);
 }
 
 static int __fill_line(char *source, char* buff, long* curr_pos)
 {
     int len = strlen(source);
-    memcpy(buff + *curr_pos, source, len);
+    strcpy(buff + *curr_pos, source);
     *curr_pos += len;
 }
 
 static long __count_body_bytes(dir_tree *dt)
 {
     int files, dirs;
-    get_dir_tree_stat(&files, &dirs, dt);
+    get_dir_tree_stat(&dirs, &files, dt);
 
-    return files*FILE_LINE_LEN + dirs*DIR_LINE_LEN + 1;
+    return (files)*FILE_LINE_LEN + dirs*DIR_LINE_LEN + 1;
 }
 
 static char* __get_file_line(dir_tree *node, char *prev_path)
@@ -125,7 +125,7 @@ static char* __get_file_line(dir_tree *node, char *prev_path)
     char *ret = (char*) calloc(FILE_LINE_LEN, sizeof(char));
     char *s0 = "<div class=\"hover-item\"><a href=\"";
     char *s1 = "<div class=\"size-date\"><span>";
-    char *s2 = "</span></div></div>\n";
+    char *s2 = "</span></div></div>\n\n";
     int i = 0, pos = 0;
     float f = 0;
 
@@ -232,7 +232,7 @@ static char* __get_file_line(dir_tree *node, char *prev_path)
     }
     i = 0;
 
-    ret[pos] = '\n';
+    ret[pos] = '\0';
 
     return ret;
 }
