@@ -37,6 +37,16 @@ int main(int argc, char **argv)
 
     char* buff = print_to_buffer_html_one_level(argv[1]);
 
+	if (buff == NULL)
+	{
+		printf("cannot make html");
+
+	    free(buff);
+    	free(dwd);
+    	free(ewd);
+		return -1;
+	}
+
     printf("%s\n", buff);
 
     free(buff);

@@ -14,11 +14,20 @@
 #define BUFF_SIZE 4096
 #define FORBIDDEN_NO_BACKWARDS "HTTP/1.1 403 Forbidden\nContent-Type: application/json\n\n{\n  \"error\": \"Wrong request\",\n  \"message\": \"/../ not allowed in request\"\n}\n"
 #define FORBIDDEN_ONLY_GET "HTTP/1.1 403 Forbidden\nContent-Type: application/json\n\n{\n  \"error\": \"Wrong request\",\n  \"message\": \"only GET allowed\"\n}\n"
+#define NOT_FOUND "HTTP/1.1 404 Not Found\n"
+#define OK_HEADERS "HTTP/1.1 200 OK\nServer: custom_autoindex\nContent-Type: text/html\n\n"
 
+#define OK_HEADERS_LEN 66
 
 static char* __get_html_buffer_by_uri(char* uri)
 {
-	return print_to_buffer_html_one_level(uri);
+	char* ret = print_to_buffer_html_one_level(uri);
+	if (ret == NULL)
+	{
+		printf("cannot make html from %s\n", uri);
+		return NULL;
+	}
+	return ret;
 }
 
 static int __check_request_type(char* request)
@@ -63,6 +72,21 @@ static int __extract_uri(char* dest, char* read_buff)
 		return 0;
 }
 
+
+static int __send_ok(int out_socket, char* payload)
+{
+	char                               *response;
+
+
+	response = (char*) malloc(sizeof(char) * (strlen(payload)+strlen(OK_HEADERS)+1));
+
+	strcpy(response, OK_HEADERS);
+	strcpy(response + OK_HEADERS_LEN, payload);
+
+	send(out_socket, response, strlen(payload)+OK_HEADERS_LEN, 0);
+
+	free(response);
+}
 
 
 int run_server()
@@ -118,7 +142,7 @@ int run_server()
 		if(__check_request_type(buffer) != 0)
 		{
 			send(new_socket, FORBIDDEN_ONLY_GET, strlen(FORBIDDEN_ONLY_GET), 0);
-			printf("%b %s\n", address.sin_addr.s_addr, "attempted not GET");
+			printf("%s attempted not GET\n", inet_ntoa(address.sin_addr));
 			close(new_socket);
 			continue;
 		}
@@ -126,18 +150,24 @@ int run_server()
 		if (__extract_uri(uri, buffer) != 0)
 		{
 			send(new_socket, FORBIDDEN_NO_BACKWARDS, strlen(FORBIDDEN_NO_BACKWARDS), 0);
-			printf("%b %s\n", address.sin_addr.s_addr, "attempted /../ in uri");
+			printf("%s attempted /../ in uri\n", inet_ntoa(address.sin_addr));
 			close(new_socket);
 			continue;
 		}
 
-		printf("%s %b %s %.*s\n", "got request from", address.sin_addr.s_addr, "with uri", (int) strlen(uri), uri);
+		printf("got request from %s with uri %s\n", inet_ntoa(address.sin_addr), uri);
 
-		out_buffer = __get_html_buffer_by_uri(uri);
+		if((out_buffer = __get_html_buffer_by_uri(uri)) == NULL)
+		{
+			send(new_socket, NOT_FOUND, strlen(NOT_FOUND), 0);
+			printf("%s attempted access non existent dir %s\n", inet_ntoa(address.sin_addr), uri);
+			close(new_socket);
+			continue;
+		}
 
-	   	send(new_socket, out_buffer, strlen(out_buffer), 0);
+	   	__send_ok(new_socket, out_buffer);
 
-		printf("%s\n", "Sent response");
+		printf("Sent response to %s\n", inet_ntoa(address.sin_addr));
 
 		close(new_socket);
 
