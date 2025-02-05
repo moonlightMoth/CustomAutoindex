@@ -64,7 +64,7 @@ int main (int argc, char** argv)
 
 	if (strcmp(argv[1], "-s") == 0 || strcmp(argv[1], "--serve") == 0)
 	{
-		if(run_server() != 0)
+		if(run_server(dwd, ewd) != 0)
 		{
 			perror("failed socker operation");
 			return -1;

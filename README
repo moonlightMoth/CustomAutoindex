@@ -1,0 +1,13 @@
+CustomAutoindex made for generating html of directory contents.
+
+usage:
+
+	./custom_autoindex --tree|-t|--serve|-s|--single|-s <directory>
+
+-t, --tree - make full tree starting from <directory> and write it to tree.html.
+-s, --serve - start http server under 8080 port. Server generates one level html upon request and responds with it.
+              Only GET allowed.
+-S, --single - prints one level html to stdout.
+
+header.html and footer.html are requred in executable directory for correct workflow.
+.html files are customizable.

@@ -43,7 +43,7 @@ valgrind_test: target/html_printer_test.out target/dir_lister_test.out target/cu
 
 valgrind_server_test: target/custom_autoindex.out
 	echo "---------------------------------------------------------------------------"
-	valgrind --leak-check=full --error-exitcode=1 --track-origins=yes --show-leak-kinds=all -s target/custom_autoindex.out -s /
+	valgrind --leak-check=full --error-exitcode=1 --track-origins=yes --show-leak-kinds=all -s target/custom_autoindex.out -s .
 
 
 

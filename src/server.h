@@ -1,12 +1,12 @@
 #ifndef SERVER_H_SEEN
 #define SERVER_H_SEEN
 
-
 #include <arpa/inet.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <sys/stat.h>
 
 #include "html_printer.h"
 
@@ -15,9 +15,24 @@
 #define FORBIDDEN_NO_BACKWARDS "HTTP/1.1 403 Forbidden\nContent-Type: application/json\n\n{\n  \"error\": \"Wrong request\",\n  \"message\": \"/../ not allowed in request\"\n}\n"
 #define FORBIDDEN_ONLY_GET "HTTP/1.1 403 Forbidden\nContent-Type: application/json\n\n{\n  \"error\": \"Wrong request\",\n  \"message\": \"only GET allowed\"\n}\n"
 #define NOT_FOUND "HTTP/1.1 404 Not Found\n"
-#define OK_HEADERS "HTTP/1.1 200 OK\nServer: custom_autoindex\nContent-Type: text/html\n\n"
+#define OK_HTML_HEADERS "HTTP/1.1 200 OK\nServer: custom_autoindex\nContent-Type: text/html\n\n"
+#define OK_FILE_HEADERS "HTTP/1.1 200 OK\nServer: custom_autoindex\nContent-Type: application/octet-stream\n\n"
 
-#define OK_HEADERS_LEN 66
+#define OK_HTML_HEADERS_LEN 66
+#define OK_FILE_HEADERS_LEN 81
+
+#ifndef DIR_IDENTITY
+	#define DIR_IDENTITY 0
+#endif
+#ifndef FILE_IDENTITY
+	#define FILE_IDENTITY 1
+#endif
+#ifndef LINK_IDENTITY
+	#define LINK_IDENTITY 2
+#endif
+#define NOT_FOUND_IDENTITY -1
+
+char *dest_wd, *exec_wd;
 
 static char* __get_html_buffer_by_uri(char* uri)
 {
@@ -62,36 +77,105 @@ static int __extract_uri(char* dest, char* read_buff)
 			}
 		}
 
-		*(dest) = '.';
-		*(dest + 1) = '/';
 
-		memcpy(dest+2, uri_ptr, uri_len);
+		if (uri_len == 0)
+		{
+			dest[0] = '.';
+			uri_len++;
+		}
+		else
+		{
+			memcpy(dest, uri_ptr, uri_len);
+		}
 
-		*(dest + 2 + uri_len) = '\0';
+		dest[uri_len] = '\0';
 
 		return 0;
 }
 
-
-static int __send_ok(int out_socket, char* payload)
+static int __send_ok_dir_by_uri(char* uri, int out_socket)
 {
-	char                               *response;
+	char*                              out_buffer;
 
+	if((out_buffer = __get_html_buffer_by_uri(uri)) == NULL)
+	{
+		send(out_socket, NOT_FOUND, strlen(NOT_FOUND), 0);
+		return -1;
+	}
 
-	response = (char*) malloc(sizeof(char) * (strlen(payload)+strlen(OK_HEADERS)+1));
+	send(out_socket, OK_HTML_HEADERS, OK_HTML_HEADERS_LEN, 0);
+	send(out_socket, out_buffer, strlen(out_buffer),0);
 
-	strcpy(response, OK_HEADERS);
-	strcpy(response + OK_HEADERS_LEN, payload);
+	free(out_buffer);
 
-	send(out_socket, response, strlen(payload)+OK_HEADERS_LEN, 0);
+	return 0;
 
-	free(response);
+}
+
+static int __send_ok_file_by_uri(char* uri, int out_socket)
+{
+	FILE                              *file;
+	char                              *buffer[1024] = {0};
+	int                               buffer_size = 1024;
+	unsigned long                     last_count;
+
+	chdir(dest_wd);
+
+	if((file = fopen(uri, "r")) == NULL)
+	{
+		send(out_socket, NOT_FOUND, strlen(NOT_FOUND), 0);
+		return -1;
+	}
+
+	send(out_socket, OK_FILE_HEADERS, OK_FILE_HEADERS_LEN, 0);
+
+	while((last_count = fread(buffer, 1, buffer_size, file)) == buffer_size)
+	{
+		send(out_socket, buffer, buffer_size, 0);
+	}
+
+	send(out_socket, buffer, last_count, 0);
+
+	fclose(file);
+
+	return 0;
+}
+
+//check weather uri is file, dir, link or not found
+static int __get_identity(char* uri)
+{
+	struct stat                   stat_buff;
+	int                           lstatret;
+
+	chdir(dest_wd);
+
+	if (lstat(uri, &stat_buff) != 0)
+	{
+		return NOT_FOUND_IDENTITY;
+	}
+
+	if (S_ISDIR(stat_buff.st_mode))
+	{
+		return DIR_IDENTITY;
+	}
+
+	if(S_ISREG(stat_buff.st_mode))
+	{
+		return FILE_IDENTITY;
+	}
+
+	if (S_ISLNK(stat_buff.st_mode))
+	{
+		return LINK_IDENTITY;
+	}
+
+	return LINK_IDENTITY;
 }
 
 
-int run_server()
+int run_server(char* dwd, char* ewd)
 {
-	int                                server_fd, new_socket;
+	int                                server_fd, new_socket, identity;
     ssize_t                            valread;
     struct sockaddr_in                 address;
     int                                opt = 1;
@@ -157,21 +241,21 @@ int run_server()
 
 		printf("got request from %s with uri %s\n", inet_ntoa(address.sin_addr), uri);
 
-		if((out_buffer = __get_html_buffer_by_uri(uri)) == NULL)
+		identity = __get_identity(uri);
+
+		switch (identity)
 		{
-			send(new_socket, NOT_FOUND, strlen(NOT_FOUND), 0);
-			printf("%s attempted access non existent dir %s\n", inet_ntoa(address.sin_addr), uri);
-			close(new_socket);
-			continue;
+			case DIR_IDENTITY: __send_ok_dir_by_uri(uri, new_socket); break;
+			case FILE_IDENTITY: __send_ok_file_by_uri(uri, new_socket); break;
+			case LINK_IDENTITY: __send_ok_dir_by_uri(uri, new_socket); break;
+			default: send(new_socket, NOT_FOUND, strlen(NOT_FOUND), 0);
+					 printf("%s attempted access non existent dir %s\n", inet_ntoa(address.sin_addr), uri);
+					 break;
 		}
 
-	   	__send_ok(new_socket, out_buffer);
+		close(new_socket);
 
 		printf("Sent response to %s\n", inet_ntoa(address.sin_addr));
-
-		close(new_socket);
-		free(out_buffer);
-
 	}
 
 
