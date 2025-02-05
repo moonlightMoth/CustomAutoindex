@@ -10,7 +10,6 @@
 #include <time.h>
 
 #include "dir_lister.h"
-#include <linux/limits.h>
 
 #define HEDAER_FILE "header.html"
 #define FOOTER_FILE "footer.html"
@@ -18,6 +17,7 @@
 #define FILE_LINE_LEN 512
 #define DIR_LINE_LEN 512
 #define ONE_LEVEL_OFFSET 2
+#define PATH_MAX 4096
 
 char *dest_wd, *exec_wd;
 

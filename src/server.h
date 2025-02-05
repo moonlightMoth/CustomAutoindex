@@ -7,6 +7,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <sys/stat.h>
+#include <time.h>
 
 #include "html_printer.h"
 
@@ -16,10 +17,12 @@
 #define FORBIDDEN_ONLY_GET "HTTP/1.1 403 Forbidden\nContent-Type: application/json\n\n{\n  \"error\": \"Wrong request\",\n  \"message\": \"only GET allowed\"\n}\n"
 #define NOT_FOUND "HTTP/1.1 404 Not Found\n"
 #define OK_HTML_HEADERS "HTTP/1.1 200 OK\nServer: custom_autoindex\nContent-Type: text/html\n\n"
-#define OK_FILE_HEADERS "HTTP/1.1 200 OK\nServer: custom_autoindex\nContent-Type: application/octet-stream\n\n"
+#define OK_FILE_HEADERS "HTTP/1.1 200 OK\nServer: custom_autoindex\nContent-Type: application/octet-stream\n"
+#define FILE_LEN_HEADER "Content-Length: "
 
 #define OK_HTML_HEADERS_LEN 66
 #define OK_FILE_HEADERS_LEN 81
+#define FILE_LEN_HEADER_LEN 16
 
 #ifndef DIR_IDENTITY
 	#define DIR_IDENTITY 0
@@ -33,6 +36,25 @@
 #define NOT_FOUND_IDENTITY -1
 
 char *dest_wd, *exec_wd;
+
+static int __print_time(int num_of_new_lines)
+{
+	time_t                    rawtime;
+    char                      buffer[80];
+
+    time(&rawtime);
+
+    strftime(buffer, sizeof(buffer), "%Y.%m.%d %H:%M:%S", localtime(&rawtime));
+
+    printf("[%s] ", buffer);
+
+	for (int i = 0; i < num_of_new_lines; i++)
+	{
+		printf("\n");
+	}
+
+    return 0;
+}
 
 static char* __get_html_buffer_by_uri(char* uri)
 {
@@ -115,9 +137,9 @@ static int __send_ok_dir_by_uri(char* uri, int out_socket)
 static int __send_ok_file_by_uri(char* uri, int out_socket)
 {
 	FILE                              *file;
-	char                              *buffer[1024] = {0};
+	char                              buffer[1024] = {0}, sz_buff[100] = {0};
 	int                               buffer_size = 1024;
-	unsigned long                     last_count;
+	unsigned long                     last_count, sz;
 
 	chdir(dest_wd);
 
@@ -127,7 +149,16 @@ static int __send_ok_file_by_uri(char* uri, int out_socket)
 		return -1;
 	}
 
-	send(out_socket, OK_FILE_HEADERS, OK_FILE_HEADERS_LEN, 0);
+	fseek(file, 0L, SEEK_END);
+	sz = ftell(file);
+	fseek(file, 0L, SEEK_SET);
+	rewind(file);
+
+	sprintf(sz_buff, "%ld\n\n", sz);
+
+	send(out_socket, OK_FILE_HEADERS, strlen(OK_FILE_HEADERS), 0);
+	send(out_socket, FILE_LEN_HEADER, strlen(FILE_LEN_HEADER), 0);
+	send(out_socket, sz_buff, strlen(sz_buff), 0);
 
 	while((last_count = fread(buffer, 1, buffer_size, file)) == buffer_size)
 	{
@@ -183,6 +214,13 @@ int run_server(char* dwd, char* ewd)
     char                               buffer[BUFF_SIZE] = { 0 }, uri[BUFF_SIZE] = {0};
     char                               *out_buffer;
 
+	printf("running server...\n\n");
+
+	chdir(dest_wd);
+
+	printf("current destination directory is %s\n", dest_wd);
+	printf("current executeble directory is %s\n\n", exec_wd);
+
     // Creating socket file descriptor
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) 
 	{
@@ -226,6 +264,7 @@ int run_server(char* dwd, char* ewd)
 		if(__check_request_type(buffer) != 0)
 		{
 			send(new_socket, FORBIDDEN_ONLY_GET, strlen(FORBIDDEN_ONLY_GET), 0);
+			__print_time(0);
 			printf("%s attempted not GET\n", inet_ntoa(address.sin_addr));
 			close(new_socket);
 			continue;
@@ -234,11 +273,13 @@ int run_server(char* dwd, char* ewd)
 		if (__extract_uri(uri, buffer) != 0)
 		{
 			send(new_socket, FORBIDDEN_NO_BACKWARDS, strlen(FORBIDDEN_NO_BACKWARDS), 0);
+			__print_time(0);
 			printf("%s attempted /../ in uri\n", inet_ntoa(address.sin_addr));
 			close(new_socket);
 			continue;
 		}
 
+		__print_time(0);
 		printf("got request from %s with uri %s\n", inet_ntoa(address.sin_addr), uri);
 
 		identity = __get_identity(uri);
@@ -249,12 +290,14 @@ int run_server(char* dwd, char* ewd)
 			case FILE_IDENTITY: __send_ok_file_by_uri(uri, new_socket); break;
 			case LINK_IDENTITY: __send_ok_dir_by_uri(uri, new_socket); break;
 			default: send(new_socket, NOT_FOUND, strlen(NOT_FOUND), 0);
+					 __print_time(0);
 					 printf("%s attempted access non existent dir %s\n", inet_ntoa(address.sin_addr), uri);
 					 break;
 		}
 
 		close(new_socket);
 
+		__print_time(0);
 		printf("Sent response to %s\n", inet_ntoa(address.sin_addr));
 	}
 

@@ -6,7 +6,6 @@ compile: src/html_printer.h src/dir_lister.h src/custom_autoindex.h src/custom_a
 	mkdir target
 	cp README target/README
 	gcc -O2 -o target/custom_autoindex src/custom_autoindex.c
-	make -s install_html_templates
 
 test_compile: test/html_printer_test.c test/dir_lister_test.c test/custom_autoindex_test.c src/custom_autoindex.c
 	mkdir target

@@ -14,6 +14,9 @@
 #define FILE_IDENTITY 1
 #define LINK_IDENTITY 2
 #define FULL_TREE -1
+#ifndef PATH_MAX
+	#define PATH_MAX 4096
+#endif
 
 #define MIN(a, b) (a) < (b) ? a : b
 
