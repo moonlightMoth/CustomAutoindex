@@ -14,5 +14,6 @@ COPY --from=build /app/target/ /app
 RUN mkdir /vol
 VOLUME /vol
 EXPOSE 8080
+WORKDIR /
 
-CMD ["./custom_autoindex", "-s", "/vol"]
+CMD ["./app/custom_autoindex", "-s", "/vol/"]

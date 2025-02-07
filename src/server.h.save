@@ -79,10 +79,15 @@ static int __check_request_type(char* request)
 	return 0;
 }
 
+static void __convert_non_latin(char* buff)
+{
+
+}
+
 static int __extract_uri(char* dest, char* read_buff)
 {
 		char* 		uri_ptr = read_buff;
-		int 		uri_len = 0;
+		int 		uri_len = 0, i;
 
 		while (*uri_ptr != '/' && *uri_ptr != '\0')
 			uri_ptr++;
@@ -112,6 +117,8 @@ static int __extract_uri(char* dest, char* read_buff)
 		}
 
 		dest[uri_len] = '\0';
+
+		__convert_non_latin(dest);
 
 		return 0;
 }
