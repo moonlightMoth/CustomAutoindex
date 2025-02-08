@@ -1,3 +1,6 @@
+#ifndef DIR_LISTER_H_SEEN
+#define DIR_LISTER_H_SEEN
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,6 +14,9 @@
 #define FILE_IDENTITY 1
 #define LINK_IDENTITY 2
 #define FULL_TREE -1
+#ifndef PATH_MAX
+	#define PATH_MAX 4096
+#endif
 
 #define MIN(a, b) (a) < (b) ? a : b
 
@@ -27,6 +33,26 @@ typedef struct dt
 //----------------------------------------------------------------------------------------------------
 //util functions--------------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------------------------
+
+
+// public fun to destruct dir_tree
+int destruct_dir_tree(dir_tree *node)
+{
+    free(node->name);
+
+    if (node->children)
+    {
+        for (int i = 0; i < node->num_of_children; i++)
+        {
+            destruct_dir_tree(node->children[i]);
+        }
+        free(node->children);
+    }
+
+    free(node);
+
+    return 0;
+}
 
 static void __swap(dir_tree **p1, dir_tree **p2)
 {
@@ -69,7 +95,7 @@ static int __fill_name_buff(char* src, char* dst)
 {
     if (!src || !dst)
     {
-        perror("NULL one of buffers: __fill_name_buff::dir_lister.h");
+        perror("NULL one of buffers: __fill_name_buff::dir_lister.h\n");
         return -1;
     }
 
@@ -233,7 +259,10 @@ static dir_tree* __list_dirs(char* path, struct stat *stat_buff, int currLevel, 
 
     if (dp == NULL)
     {
-        perror("Got null while open dir");
+        perror("Got null while open dir\n");
+
+		destruct_dir_tree(node);
+
         return NULL;
     }
 
@@ -366,25 +395,6 @@ int print_tree(dir_tree *dt)
 }
 
 
-// public fun to destruct dir_tree
-int destruct_dir_tree(dir_tree *node)
-{
-    free(node->name);
-
-    if (node->children)
-    {
-        for (int i = 0; i < node->num_of_children; i++)
-        {
-            destruct_dir_tree(node->children[i]);
-        }
-        free(node->children);
-    }
-
-    free(node);
-
-    return 0;
-}
-
 static int __sort_children(dir_tree **dt, int n)
 {
     int maxIdx = 0;
@@ -414,7 +424,7 @@ int sort_dir_tree(dir_tree *dt)
 
     if (dt == NULL)
     {
-        perror("Got NULL at sort_dir_tree");
+        perror("Got NULL at sort_dir_tree\n");
         return -1;
     }
 
@@ -423,7 +433,7 @@ int sort_dir_tree(dir_tree *dt)
 
     if (__sort_children(dt->children, dt->num_of_children) != 0)
     {
-        perror("Got -1 in sort_dir_tree from __sort_children");
+        perror("Got -1 in sort_dir_tree from __sort_children\n");
         return -1;
     }
 
@@ -448,11 +458,17 @@ int sort_dir_tree(dir_tree *dt)
 
 dir_tree* get_non_recursive_tree(char* path)
 {
+    struct stat *stat_buff = (struct stat*) malloc(sizeof(struct stat));
+
+	if (!(stat(path, stat_buff) == 0 && S_ISDIR(stat_buff->st_mode))) //if dir with <path> does not exist
+	{
+		free(stat_buff);
+		return NULL;
+	}
+
     char* buff = (char*) malloc(PATH_MAX + 1);
     buff[PATH_MAX] = '\0';
     strcpy(buff, path);
-
-    struct stat *stat_buff = (struct stat*) malloc(sizeof(struct stat));
 
     dir_tree *dt = __list_dirs(buff, stat_buff, 0, 1);
 
@@ -463,3 +479,7 @@ dir_tree* get_non_recursive_tree(char* path)
 
 
 
+
+
+
+#endif

@@ -1,3 +1,6 @@
+#ifndef HTML_PRINTER_H_SEEN
+#define HTML_PRINTER_H_SEEN
+
 #include <stdio.h>
 #include <sys/socket.h>
 #include <stdlib.h>
@@ -11,9 +14,10 @@
 #define HEDAER_FILE "header.html"
 #define FOOTER_FILE "footer.html"
 #define OUT_FILE "tree.html"
-#define FILE_LINE_LEN 5120
-#define DIR_LINE_LEN 100
+#define FILE_LINE_LEN 512
+#define DIR_LINE_LEN 512
 #define ONE_LEVEL_OFFSET 2
+#define PATH_MAX 4096
 
 char *dest_wd, *exec_wd;
 
@@ -23,13 +27,13 @@ static long __get_file_length(FILE *fptr)
 
     if (fptr == NULL)
     {
-        perror("NULL in get_file_length");
+        perror("NULL in get_file_length\n");
         return -1;
     }
 
     if (fseek(fptr, 0, SEEK_END) < 0)
     {
-        perror("Got zero size get_file_length");
+        perror("Got zero size get_file_length\n");
         return -1;
     }
 
@@ -46,7 +50,7 @@ static int __get_file_content(FILE* fptr, char* buffer)
 
     if (fptr == NULL)
     {
-        perror("NULL in get_file_content");
+        perror("NULL in get_file_content\n");
         return -1;
     }
 
@@ -67,7 +71,7 @@ static int __write_to_file(char **buff, int buff_size)
 
     if (!optr)
     {
-        perror("Got NULL in __write_to_file");
+        perror("Got NULL in __write_to_file\n");
         return 1;
     }
 
@@ -90,30 +94,30 @@ static int __write_to_file(char **buff, int buff_size)
 
 static int __fill_line_with_offset(char* source, char* buff, int offset, long *curr_pos)
 {
-    int i, len = strlen(source);
+    int i;
 
     for (i = 0; i < offset; i++)
     {
         buff[*curr_pos + i] = ' ';
     }
     *curr_pos = *curr_pos + offset;
-    memcpy(buff + *curr_pos, source, len);
-    *curr_pos += len;
+    strcpy(buff + *curr_pos, source);
+    *curr_pos += strlen(source);
 }
 
 static int __fill_line(char *source, char* buff, long* curr_pos)
 {
     int len = strlen(source);
-    memcpy(buff + *curr_pos, source, len);
+    strcpy(buff + *curr_pos, source);
     *curr_pos += len;
 }
 
 static long __count_body_bytes(dir_tree *dt)
 {
     int files, dirs;
-    get_dir_tree_stat(&files, &dirs, dt);
+    get_dir_tree_stat(&dirs, &files, dt);
 
-    return files*FILE_LINE_LEN + dirs*DIR_LINE_LEN + 1;
+    return (files)*FILE_LINE_LEN + dirs*DIR_LINE_LEN + 1;
 }
 
 static char* __get_file_line(dir_tree *node, char *prev_path)
@@ -121,7 +125,7 @@ static char* __get_file_line(dir_tree *node, char *prev_path)
     char *ret = (char*) calloc(FILE_LINE_LEN, sizeof(char));
     char *s0 = "<div class=\"hover-item\"><a href=\"";
     char *s1 = "<div class=\"size-date\"><span>";
-    char *s2 = "</span></div></div>\n";
+    char *s2 = "</span></div></div>\n\n";
     int i = 0, pos = 0;
     float f = 0;
 
@@ -228,7 +232,7 @@ static char* __get_file_line(dir_tree *node, char *prev_path)
     }
     i = 0;
 
-    ret[pos] = '\n';
+    ret[pos] = '\0';
 
     return ret;
 }
@@ -357,11 +361,11 @@ int print_html(char* dir)
     FILE *footer_ptr = fopen(FOOTER_FILE, "r");
 
     if (header_ptr == NULL) {
-        perror("Cannot open html header file");
+        perror("Cannot open html header file\n");
         return 1;
     }
     if (footer_ptr == NULL) {
-        perror("Cannot open html footer file");
+        perror("Cannot open html footer file\n");
         return 1;
     }
 
@@ -404,24 +408,24 @@ int print_html(char* dir)
 
 }
 
-//must be called before all operations with header
+//must be called before all operations with header or footer
+// parses zero arg to gain executable path and destination arg to gain path to start search dest dir from
 
-
-int load_wds(char* dwd, char* ewd, char** args)
+int load_wds(char* dwd, char* ewd, char* exec_arg, char* dest_arg)
 {
     char *tmp, *args_ptr;
     int sz;
-    if (*args[1] == '/')
+    if (*dest_arg == '/')
     {
-        tmp = args[1];
+        tmp = dest_arg;
         while (*tmp++);
         while (*tmp != '/') tmp--;
-        sz = tmp - args[1];
+        sz = tmp - dest_arg;
 
         if (sz == 0)
             sz++;
 
-        memcpy(dwd, args[1], sz);
+        memcpy(dwd, dest_arg, sz);
         dwd[sz] = '\0';
         dest_wd = dwd;
     }
@@ -431,16 +435,14 @@ int load_wds(char* dwd, char* ewd, char** args)
         dest_wd = dwd;
     }
 
-    //printf("%s\n", args[0]);
-
-    if (*args[0] == '/')
+    if (*exec_arg == '/')
     {
-        tmp = args[0];
+        tmp = exec_arg;
         while (*tmp) tmp++;
         while (*tmp != '/')
             tmp--;
-        sz = tmp - args[0];
-        memcpy(ewd, args[0], sz);
+        sz = tmp - exec_arg;
+        memcpy(ewd, exec_arg, sz);
         ewd[sz] = '\0';
         exec_wd = ewd;
     }
@@ -450,7 +452,7 @@ int load_wds(char* dwd, char* ewd, char** args)
         tmp = ewd;
         while (*tmp++); //move till end of str
         sz = tmp - ewd; //count size of str
-        args_ptr = args[0];
+        args_ptr = exec_arg;
         ewd[sz-1] = '/';
         while (*args_ptr) ewd[sz++] = *args_ptr++;
         sz--;
@@ -487,7 +489,14 @@ static char* __get_body_one_level(char* dir)
     dir_tree             *root, up_dt;
 
     chdir(dest_wd);
-    root = get_non_recursive_tree(dir);
+
+    if((root = get_non_recursive_tree(dir)) == NULL)
+	{
+		printf("no such directory %s\n", dir);
+
+		return NULL;
+	}
+
     sort_dir_tree(root);
     buff_length = __count_body_bytes(root); // too much space, can be optimized
     ret = malloc(buff_length);
@@ -562,12 +571,20 @@ char* print_to_buffer_html_one_level(char* dir)
     FILE *footer_ptr = fopen(FOOTER_FILE, "r");
 
     if (header_ptr == NULL) {
-        perror("Cannot open html header file");
-        return 1;
+        perror("Cannot open html header file\n");
+
+		fclose(header_ptr);
+		fclose(footer_ptr);
+
+        return NULL;
     }
     if (footer_ptr == NULL) {
-        perror("Cannot open html footer file");
-        return 1;
+        perror("Cannot open html footer file\n");
+
+		fclose(header_ptr);
+		fclose(footer_ptr);
+
+        return NULL;
     }
 
 
@@ -575,7 +592,18 @@ char* print_to_buffer_html_one_level(char* dir)
     szf = __get_file_length(footer_ptr);
 
     header_buffer = (char*) malloc((szh) * sizeof(char) + 1);
-    body_buffer = __get_body_one_level(dir);
+
+	if((body_buffer = __get_body_one_level(dir)) == NULL)
+	{
+		printf("cannot make html from %s\n", dir);
+
+	    free(header_buffer);
+		fclose(header_ptr);
+		fclose(footer_ptr);
+
+		return NULL;
+	}
+
     footer_buffer = (char*) malloc((szf) * sizeof(char) + 1);
 
     merged = (char**) calloc (3, sizeof(void*));
@@ -591,13 +619,31 @@ char* print_to_buffer_html_one_level(char* dir)
 
     if (header_buffer == NULL)
     {
-        perror("Cannot read html header file");
-        return 1;
+        perror("Cannot read html header file\n");
+
+   		free(header_buffer);
+   		free(body_buffer);
+   		free(footer_buffer);
+	    free(merged);
+		fclose(header_ptr);
+		fclose(footer_ptr);
+
+
+        return NULL;
     }
     if (footer_buffer == NULL)
     {
-        perror("Cannot read html footer file");
-        return 1;
+        perror("Cannot read html footer file\n");
+
+   		free(header_buffer);
+   		free(body_buffer);
+   		free(footer_buffer);
+	    free(merged);
+		fclose(header_ptr);
+		fclose(footer_ptr);
+
+
+        return NULL;
     }
 
     ret = __write_to_buffer(merged, 3);
@@ -625,11 +671,11 @@ int print_html_one_level(char* dir)
     FILE *footer_ptr = fopen(FOOTER_FILE, "r");
 
     if (header_ptr == NULL) {
-        perror("Cannot open html header file");
+        perror("Cannot open html header file\n");
         return 1;
     }
     if (footer_ptr == NULL) {
-        perror("Cannot open html footer file");
+        perror("Cannot open html footer file\n");
         return 1;
     }
 
@@ -654,12 +700,12 @@ int print_html_one_level(char* dir)
 
     if (header_buffer == NULL)
     {
-        perror("Cannot read html header file");
+        perror("Cannot read html header file\n");
         return 1;
     }
     if (footer_buffer == NULL)
     {
-        perror("Cannot read html footer file");
+        perror("Cannot read html footer file\n");
         return 1;
     }
 
@@ -671,3 +717,11 @@ int print_html_one_level(char* dir)
     free(merged);
 
 }
+
+
+
+
+
+
+
+#endif
