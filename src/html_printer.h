@@ -512,7 +512,7 @@ static char* __get_body_one_level(char* dir)
     up_dt.mtime = 0;
 
     __fill_line_with_offset("<li>", ret, offset, &curr_pos);
-    __fill_buffer_non_recursive(ret, &prev_path, &up_dt, &curr_pos); 
+    __fill_buffer_non_recursive(ret, &prev_path, &up_dt, &curr_pos);
     __fill_line_with_offset("</li>\n", ret, offset, &curr_pos);
 
     for (i = 0; i < root->num_of_children; i++)

@@ -166,9 +166,17 @@ static int __fill_dummy(dir_tree* node, char* path, char* name, struct stat *sta
     node->children = NULL;
 
     lstat(path, stat_buff);
-    node->size = stat_buff->st_size;
     node->mtime = stat_buff->st_mtime;
     node->type = S_ISDIR(stat_buff->st_mode) ? DIR_IDENTITY : S_ISLNK(stat_buff->st_mode) ? LINK_IDENTITY : FILE_IDENTITY;
+
+	if (node-> type == DIR_IDENTITY)
+	{
+		node->size = 4096;
+	}
+	else
+	{
+	    node->size = stat_buff->st_size;
+	}
 
     return 0;
 }
